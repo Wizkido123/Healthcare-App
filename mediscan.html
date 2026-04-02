@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediScan AI — Clinical Decision Support</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root {
+    --navy: #0d1b2a;
+    --navy-mid: #1a2f45;
+    --navy-light: #243b55;
+    --teal: #00a896;
+    --teal-light: #02c5b0;
+    --teal-dim: rgba(0,168,150,0.15);
+    --gold: #e8c468;
+    --cream: #f5f0e8;
+    --white: #ffffff;
+    --red: #e05252;
+    --red-dim: rgba(224,82,82,0.12);
+    --amber: #f0a500;
+    --text-primary: #0d1b2a;
+    --text-secondary: #4a6278;
+    --text-muted: #8a9fb5;
+    --border: rgba(13,27,42,0.12);
+    --border-teal: rgba(0,168,150,0.3);
+    --shadow: 0 4px 24px rgba(13,27,42,0.08);
+    --shadow-md: 0 8px 40px rgba(13,27,42,0.14);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: var(--navy);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-icon {
+    width: 42px; height: 42px;
+    background: var(--teal);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .logo-text h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--white);
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .logo-text p {
+    color: var(--teal-light);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .header-badge {
+    background: rgba(0,168,150,0.15);
+    border: 1px solid var(--border-teal);
+    color: var(--teal-light);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-bar-wrap {
+    background: var(--navy-mid);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .step-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    cursor: default;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .step-pill.active { color: var(--teal-light); border-bottom-color: var(--teal); }
+  .step-pill.done { color: var(--teal); }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .step-pill.active .step-num { background: var(--teal); color: var(--navy); }
+  .step-pill.done .step-num { background: var(--teal-dim); color: var(--teal); }
+
+  /* ─── MAIN ─── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ─── SECTION CARDS ─── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 36px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    animation: fadeUp 0.4s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-icon {
+    width: 44px; height: 44px;
+    background: var(--teal-dim);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .card-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .card-header p {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ─── FORM ELEMENTS ─── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  @media (max-width: 600px) {
+    .form-grid, .form-grid.three { grid-template-columns: 1fr; }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .field label .tip {
+    cursor: help;
+    color: var(--teal);
+    font-size: 0.85rem;
+    position: relative;
+  }
+  .field input, .field select, .field textarea {
+    background: #f9fafb;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px var(--teal-dim);
+    background: var(--white);
+  }
+  .field textarea { resize: vertical; min-height: 90px; }
+  .field .unit {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Sex toggle */
+  .sex-toggle {
+    display: flex;
+    gap: 10px;
+  }
+  .sex-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #f9fafb;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .sex-btn.active {
+    border-color: var(--teal);
+    background: var(--teal-dim);
+    color: var(--teal);
+  }
+
+  /* BMI display */
+  .bmi-display {
+    background: var(--navy);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .bmi-display .bmi-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.6rem;
+    color: var(--teal-light);
+    font-weight: 500;
+  }
+  .bmi-display .bmi-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: right;
+  }
+  .bmi-display .bmi-category {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gold);
+  }
+
+  /* Section divider */
+  .section-divider {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin: 28px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-teal);
+  }
+
+  /* ─── BODY MAP ─── */
+  .body-map-wrap {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+  }
+  @media (max-width: 650px) {
+    .body-map-wrap { flex-direction: column; }
+  }
+  .body-svg-container {
+    flex-shrink: 0;
+    width: 200px;
+  }
+  .body-svg-container svg {
+    width: 100%;
+    cursor: pointer;
+  }
+  .body-region {
+    fill: #e8f4f8;
+    stroke: #b0ccd8;
+    stroke-width: 1.5;
+    transition: fill 0.2s;
+    cursor: pointer;
+  }
+  .body-region:hover { fill: #b2e0d8; }
+  .body-region.selected { fill: var(--teal); stroke: var(--navy); }
+
+  .symptom-panel {
+    flex: 1;
+  }
+  .region-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .region-tag {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+    background: #f9fafb;
+  }
+  .region-tag.active {
+    border-color: var(--teal);
+    background: var(--teal-dim);
+    color: var(--teal);
+  }
+
+  .symptom-checklist {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 500px) { .symptom-checklist { grid-template-columns: 1fr; } }
+  .symptom-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #f9fafb;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.18s;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    user-select: none;
+  }
+  .symptom-check:hover { border-color: var(--teal); background: var(--teal-dim); }
+  .symptom-check.checked {
+    border-color: var(--teal);
+    background: var(--teal-dim);
+    color: var(--teal);
+    font-weight: 500;
+  }
+  .symptom-check .chk-box {
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    border: 2px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  /* Severity slider */
+  .severity-wrap {
+    margin-top: 16px;
+  }
+  .severity-wrap label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    display: block;
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--teal);
+  }
+  .severity-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Duration select */
+  .duration-opts {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .dur-btn {
+    padding: 7px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: #f9fafb;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .dur-btn.active {
+    border-color: var(--teal);
+    background: var(--teal-dim);
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  /* ─── FILE UPLOAD ─── */
+  .upload-zone {
+    border: 2px dashed var(--border-teal);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--teal-dim);
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--teal);
+    background: rgba(0,168,150,0.1);
+  }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .upload-zone .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .upload-zone p { color: var(--text-secondary); font-size: 0.9rem; }
+  .upload-zone small { color: var(--text-muted); font-size: 0.78rem; }
+
+  .file-previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .file-preview-card {
+    background: #f9fafb;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    position: relative;
+  }
+  .file-preview-card .file-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    word-break: break-all;
+  }
+  .file-preview-card select {
+    width: 100%;
+    font-size: 0.78rem;
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    margin-top: 6px;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .file-preview-card img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .remove-file {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 22px; height: 22px;
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    padding: 13px 28px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    transition: all 0.22s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary {
+    background: var(--teal);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: var(--teal-light); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,168,150,0.35); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--teal);
+    border: 1.5px solid var(--teal);
+  }
+  .btn-secondary:hover { background: var(--teal-dim); }
+  .btn-navy {
+    background: var(--navy);
+    color: var(--white);
+  }
+  .btn-navy:hover { background: var(--navy-mid); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  /* ─── LOADER ─── */
+  .loader-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,27,42,0.85);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .loader-overlay.active { display: flex; }
+  .loader-ring {
+    width: 64px; height: 64px;
+    border: 4px solid rgba(0,168,150,0.2);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text {
+    color: var(--white);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+  .loader-sub {
+    color: var(--teal-light);
+    font-size: 0.82rem;
+    text-align: center;
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+  /* ─── RESULTS ─── */
+  .emergency-banner {
+    background: var(--red-dim);
+    border: 2px solid var(--red);
+    border-radius: var(--radius-sm);
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    animation: fadeUp 0.4s ease;
+  }
+  .emergency-banner .em-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .emergency-banner h3 { color: var(--red); font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .emergency-banner p { color: #c0392b; font-size: 0.88rem; }
+
+  .result-section {
+    margin-bottom: 22px;
+  }
+  .result-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--navy);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .result-section h3 .dot {
+    width: 10px; height: 10px;
+    background: var(--teal);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .result-prose {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    white-space: pre-wrap;
+  }
+  .result-prose strong { color: var(--text-primary); font-weight: 600; }
+
+  .patient-summary-card {
+    background: var(--navy);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .ps-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ps-label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .ps-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.92rem;
+    color: var(--teal-light);
+    font-weight: 500;
+  }
+
+  /* ─── DISCLAIMER ─── */
+  .disclaimer {
+    background: #fffbf0;
+    border-left: 4px solid var(--gold);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 16px 20px;
+    font-size: 0.82rem;
+    color: #7a6a30;
+    line-height: 1.6;
+    margin-top: 24px;
+  }
+  .disclaimer strong { color: #5a4a10; }
+
+  /* ─── CHAT ─── */
+  .chat-wrap {
+    margin-top: 32px;
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+  }
+  .chat-wrap h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--navy);
+    margin-bottom: 16px;
+  }
+  .chat-messages {
+    max-height: 340px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-right: 4px;
+  }
+  .chat-msg {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    max-width: 88%;
+    animation: fadeUp 0.25s ease;
+  }
+  .chat-msg.user {
+    background: var(--navy);
+    color: var(--white);
+    align-self: flex-end;
+  }
+  .chat-msg.ai {
+    background: var(--teal-dim);
+    color: var(--text-primary);
+    align-self: flex-start;
+    border: 1px solid var(--border-teal);
+    white-space: pre-wrap;
+  }
+  .chat-input-row {
+    display: flex;
+    gap: 10px;
+  }
+  .chat-input-row input {
+    flex: 1;
+    padding: 11px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .chat-input-row input:focus { border-color: var(--teal); }
+
+  /* ─── MODULE VISIBILITY ─── */
+  .module { display: none; }
+  .module.active { display: block; }
+
+  /* ─── WELCOME ─── */
+  .welcome {
+    text-align: center;
+    padding: 60px 20px 40px;
+    animation: fadeUp 0.5s ease;
+  }
+  .welcome h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    color: var(--navy);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  .welcome h2 span { color: var(--teal); }
+  .welcome p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    max-width: 540px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+  .welcome-features {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .feat-chip {
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    header { padding: 14px 20px; }
+    .header-badge { display: none; }
+    main { padding: 24px 14px 60px; }
+    .card { padding: 22px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚕</div>
+    <div class="logo-text">
+      <h1>MediScan AI</h1>
+      <p>Clinical Decision Support</p>
+    </div>
+  </div>
+  <div class="header-badge">🔒 Session Only · No Data Stored</div>
+</header>
+
+<div class="progress-bar-wrap" id="progressBar" style="display:none">
+  <div class="step-pill active" id="pill1"><span class="step-num">1</span> Vitals</div>
+  <div class="step-pill" id="pill2"><span class="step-num">2</span> Symptoms</div>
+  <div class="step-pill" id="pill3"><span class="step-num">3</span> Documents</div>
+  <div class="step-pill" id="pill4"><span class="step-num">4</span> Analysis</div>
+</div>
+
+<main>
+
+  <!-- WELCOME -->
+  <div class="module active" id="modWelcome">
+    <div class="welcome">
+      <h2>Your AI-Powered<br><span>Health Assessment</span></h2>
+      <p>MediScan AI guides you through a structured clinical assessment, analyses your vitals and symptoms, and provides a comprehensive differential diagnosis with recommendations.</p>
+      <div class="welcome-features">
+        <span class="feat-chip">🩺 Vitals Analysis</span>
+        <span class="feat-chip">🫀 Body Symptom Map</span>
+        <span class="feat-chip">🩻 X-Ray & Lab Review</span>
+        <span class="feat-chip">💊 Medication Suggestions</span>
+        <span class="feat-chip">🔒 Private Session</span>
+      </div>
+      <button class="btn btn-primary" style="font-size:1rem;padding:16px 40px" onclick="startAssessment()">
+        Begin Assessment →
+      </button>
+      <p style="margin-top:20px;font-size:0.78rem;color:var(--text-muted)">
+        ⚠️ MediScan AI is for informational purposes only. Always consult a licensed physician.
+      </p>
+    </div>
+  </div>
+
+  <!-- MODULE 1: VITALS -->
+  <div class="module" id="mod1">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">👤</div>
+        <div>
+          <h2>Demographics & Vitals</h2>
+          <p>Basic information and current measurements — all fields optional except age and sex</p>
+        </div>
+      </div>
+
+      <div class="section-divider">Demographics</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Full Name <span class="tip" title="Optional — for report personalisation">ⓘ</span></label>
+          <input type="text" id="f_name" placeholder="Optional">
+        </div>
+        <div class="field">
+          <label>Age <span class="tip" title="Age in years">ⓘ</span></label>
+          <input type="number" id="f_age" placeholder="e.g. 42" min="1" max="120">
+        </div>
+      </div>
+
+      <div class="section-divider">Biological Sex</div>
+      <div class="sex-toggle">
+        <button class="sex-btn active" id="sex_male" onclick="setSex('Male')">♂ Male</button>
+        <button class="sex-btn" id="sex_female" onclick="setSex('Female')">♀ Female</button>
+        <button class="sex-btn" id="sex_other" onclick="setSex('Other')">⚥ Other</button>
+      </div>
+
+      <div class="section-divider">Body Measurements</div>
+      <div class="form-grid three">
+        <div class="field">
+          <label>Height <span class="tip" title="Height in centimetres">ⓘ</span></label>
+          <input type="number" id="f_height" placeholder="cm" oninput="calcBMI()">
+        </div>
+        <div class="field">
+          <label>Weight <span class="tip" title="Weight in kilograms">ⓘ</span></label>
+          <input type="number" id="f_weight" placeholder="kg" oninput="calcBMI()">
+        </div>
+        <div class="field">
+          <label>BMI</label>
+          <div class="bmi-display" id="bmiDisplay">
+            <span class="bmi-val" id="bmiVal">—</span>
+            <div>
+              <div class="bmi-category" id="bmiCat">Enter height & weight</div>
+              <div class="bmi-label">Body Mass Index</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider">Current Vitals</div>
+      <div class="form-grid three">
+        <div class="field">
+          <label>Pulse <span class="tip" title="Heart rate in beats per minute">ⓘ</span></label>
+          <input type="number" id="f_pulse" placeholder="bpm">
+          <span class="unit">Normal: 60–100 bpm</span>
+        </div>
+        <div class="field">
+          <label>Blood Pressure <span class="tip" title="Systolic / Diastolic in mmHg">ⓘ</span></label>
+          <input type="text" id="f_bp" placeholder="e.g. 120/80">
+          <span class="unit">Normal: &lt;120/80 mmHg</span>
+        </div>
+        <div class="field">
+          <label>Temperature <span class="tip" title="Body temperature">ⓘ</span></label>
+          <input type="number" id="f_temp" placeholder="°F" step="0.1">
+          <span class="unit">Normal: 97–99 °F (36.1–37.2 °C)</span>
+        </div>
+        <div class="field">
+          <label>Breathing Rate <span class="tip" title="Breaths per minute">ⓘ</span></label>
+          <input type="number" id="f_rr" placeholder="breaths/min">
+          <span class="unit">Normal: 12–20 /min</span>
+        </div>
+        <div class="field">
+          <label>SpO₂ <span class="tip" title="Oxygen saturation — from pulse oximeter">ⓘ</span></label>
+          <input type="number" id="f_spo2" placeholder="%" min="70" max="100">
+          <span class="unit">Normal: 95–100%</span>
+        </div>
+        <div class="field">
+          <label>Blood Sugar <span class="tip" title="Fasting blood glucose mg/dL (optional)">ⓘ</span></label>
+          <input type="number" id="f_sugar" placeholder="mg/dL">
+          <span class="unit">Fasting normal: 70–99 mg/dL</span>
+        </div>
+      </div>
+
+      <div class="section-divider">Medical History</div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>Known Conditions <span class="tip" title="Any diagnosed illnesses e.g. Diabetes, Hypertension">ⓘ</span></label>
+          <textarea id="f_conditions" placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma..."></textarea>
+        </div>
+        <div class="field">
+          <label>Current Medications <span class="tip" title="Medicines you are currently taking">ⓘ</span></label>
+          <textarea id="f_meds" placeholder="e.g. Metformin 500mg, Amlodipine 5mg..."></textarea>
+        </div>
+        <div class="field">
+          <label>Family / Hereditary Diseases <span class="tip" title="Diseases in your parents, siblings, or grandparents">ⓘ</span></label>
+          <textarea id="f_family" placeholder="e.g. Father — Heart disease; Mother — Diabetes..."></textarea>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="goTo(2)">Continue to Symptoms →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 2: SYMPTOMS -->
+  <div class="module" id="mod2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">🫀</div>
+        <div>
+          <h2>Body Region & Symptoms</h2>
+          <p>Click the body region affected, then select your symptoms</p>
+        </div>
+      </div>
+
+      <div class="body-map-wrap">
+        <div class="body-svg-container">
+          <svg viewBox="0 0 120 280" xmlns="http://www.w3.org/2000/svg">
+            <!-- Head -->
+            <ellipse class="body-region" id="svg_head" cx="60" cy="28" rx="22" ry="25" onclick="selectRegion('head')" title="Head"/>
+            <!-- Neck -->
+            <rect class="body-region" id="svg_throat" x="50" y="52" width="20" height="16" rx="4" onclick="selectRegion('throat')"/>
+            <!-- Chest -->
+            <rect class="body-region" id="svg_chest" x="28" y="68" width="64" height="54" rx="8" onclick="selectRegion('chest')"/>
+            <!-- Abdomen -->
+            <rect class="body-region" id="svg_abdomen" x="30" y="124" width="60" height="44" rx="6" onclick="selectRegion('abdomen')"/>
+            <!-- Pelvis/Urogenital -->
+            <ellipse class="body-region" id="svg_urogenital" cx="60" cy="182" rx="26" ry="16" onclick="selectRegion('urogenital')"/>
+            <!-- Left upper arm -->
+            <rect class="body-region" id="svg_ul1" x="10" y="70" width="16" height="44" rx="6" onclick="selectRegion('limbs')"/>
+            <!-- Left forearm -->
+            <rect class="body-region" id="svg_ul2" x="8" y="118" width="14" height="36" rx="5" onclick="selectRegion('limbs')"/>
+            <!-- Right upper arm -->
+            <rect class="body-region" id="svg_ur1" x="94" y="70" width="16" height="44" rx="6" onclick="selectRegion('limbs')"/>
+            <!-- Right forearm -->
+            <rect class="body-region" id="svg_ur2" x="98" y="118" width="14" height="36" rx="5" onclick="selectRegion('limbs')"/>
+            <!-- Left thigh -->
+            <rect class="body-region" id="svg_ll1" x="30" y="198" width="22" height="42" rx="6" onclick="selectRegion('limbs')"/>
+            <!-- Right thigh -->
+            <rect class="body-region" id="svg_lr1" x="68" y="198" width="22" height="42" rx="6" onclick="selectRegion('limbs')"/>
+            <!-- Left shin -->
+            <rect class="body-region" id="svg_ll2" x="32" y="242" width="18" height="32" rx="5" onclick="selectRegion('limbs')"/>
+            <!-- Right shin -->
+            <rect class="body-region" id="svg_lr2" x="70" y="242" width="18" height="32" rx="5" onclick="selectRegion('limbs')"/>
+            <!-- Back label -->
+            <text x="60" y="275" text-anchor="middle" font-size="7" fill="#8a9fb5" font-family="IBM Plex Sans, sans-serif">Tap region to select</text>
+          </svg>
+        </div>
+
+        <div class="symptom-panel">
+          <div class="section-divider" style="margin-top:0">Selected Regions</div>
+          <div class="region-tabs" id="regionTabs">
+            <span style="color:var(--text-muted);font-size:0.82rem">None selected — click on the body diagram</span>
+          </div>
+          <div id="symptomList" class="symptom-checklist"></div>
+          <div class="field">
+            <label>Describe in your own words</label>
+            <textarea id="f_desc" placeholder="Any additional details about your symptoms, when they started, what makes them better or worse..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <div class="section-divider">Onset Duration</div>
+        <div class="duration-opts" id="durationOpts">
+          <button class="dur-btn" onclick="setDuration(this, 'Today (acute)')">Today</button>
+          <button class="dur-btn" onclick="setDuration(this, '2–7 days')">2–7 Days</button>
+          <button class="dur-btn" onclick="setDuration(this, '1–4 weeks')">1–4 Weeks</button>
+          <button class="dur-btn" onclick="setDuration(this, 'More than 1 month (chronic)')">1+ Month</button>
+        </div>
+      </div>
+
+      <div class="severity-wrap">
+        <label>Severity: <strong id="sevVal">5</strong> / 10</label>
+        <input type="range" id="f_severity" min="1" max="10" value="5" oninput="document.getElementById('sevVal').textContent=this.value">
+        <div class="severity-labels"><span>Mild</span><span>Moderate</span><span>Severe</span></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(3)">Continue to Documents →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 3: DOCUMENTS -->
+  <div class="module" id="mod3">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">📄</div>
+        <div>
+          <h2>Upload Documents</h2>
+          <p>X-rays, lab reports, prescriptions, or photos — optional but enhances accuracy</p>
+        </div>
+      </div>
+
+      <div class="upload-zone" id="uploadZone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <input type="file" id="fileInput" multiple accept=".jpg,.jpeg,.png,.pdf,.gif,.webp" onchange="handleFiles(this.files)">
+        <div class="upload-icon">📁</div>
+        <p><strong>Drag & drop files here</strong> or click to browse</p>
+        <small>Accepts: JPG, PNG, PDF (X-rays, lab reports, prescriptions, wound photos)</small>
+      </div>
+
+      <div class="file-previews" id="filePreviews"></div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+        <button class="btn btn-primary" id="analyseBtn" onclick="runAnalysis()">🔬 Analyse Now →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 4: RESULTS -->
+  <div class="module" id="mod4">
+    <div class="card" id="resultsCard">
+      <div class="card-header">
+        <div class="card-icon">📋</div>
+        <div>
+          <h2>Clinical Assessment Report</h2>
+          <p id="reportTimestamp"></p>
+        </div>
+      </div>
+
+      <div id="emergencyBanner" style="display:none"></div>
+
+      <div class="patient-summary-card" id="patientSummary"></div>
+
+      <div id="resultsBody"></div>
+
+      <div class="disclaimer">
+        ⚕️ <strong>Important Disclaimer:</strong> MediScan AI is a clinical decision-support tool powered by artificial intelligence. This assessment is for <strong>informational purposes only</strong> and does not constitute a medical diagnosis. The suggested medications and investigations are general guidance only. <strong>Always consult a qualified, licensed physician</strong> to confirm any diagnosis and before commencing any treatment. In case of emergency, call your local emergency number immediately.
+      </div>
+
+      <div class="actions" style="flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="downloadReport()">⬇ Download Report</button>
+        <button class="btn btn-navy" onclick="resetApp()">+ New Assessment</button>
+      </div>
+
+      <!-- Follow-up Chat -->
+      <div class="chat-wrap">
+        <h3>🗨 Ask a Follow-up Question</h3>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="e.g. Is this medication safe for a diabetic?" onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="btn btn-primary" onclick="sendChat()">Send →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Loader -->
+<div class="loader-overlay" id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Analysing your health data…</div>
+  <div class="loader-sub" id="loaderSub">Running clinical assessment engine</div>
+</div>
+
+<script>
+// ─── STATE ───
+const state = {
+  sex: 'Male',
+  selectedRegions: new Set(),
+  selectedSymptoms: new Set(),
+  duration: '',
+  uploadedFiles: [],
+  diagnosisContext: '',
+  chatHistory: []
+};
+
+const API_URL = 'https://api.anthropic.com/v1/messages';
+
+const SYMPTOM_MAP = {
+  head: ['Headache','Dizziness / Vertigo','Confusion / Brain fog','Memory issues','Vision changes','Hearing loss / Tinnitus','Facial pain','Scalp tenderness','Neck stiffness','Fainting'],
+  throat: ['Sore throat','Difficulty swallowing','Hoarseness','Swollen glands','Throat pain','Ear pain','Runny nose','Blocked nose','Post-nasal drip','Mouth ulcers'],
+  chest: ['Chest pain / Tightness','Shortness of breath','Palpitations / Irregular heartbeat','Cough (dry)','Cough (productive)','Wheezing','Haemoptysis (blood in sputum)','Chest heaviness','Night sweats','Fever'],
+  abdomen: ['Abdominal pain','Nausea','Vomiting','Diarrhoea','Constipation','Bloating','Heartburn / Reflux','Blood in stool','Loss of appetite','Jaundice (yellow skin/eyes)'],
+  back: ['Lower back pain','Upper back pain','Radiating leg pain','Stiffness','Muscle spasms','Pain on movement','Numbness / Tingling in legs'],
+  limbs: ['Joint pain','Swelling','Muscle weakness','Numbness / Tingling','Cramps','Limited range of motion','Varicose veins','Cold extremities'],
+  urogenital: ['Frequent urination','Painful urination','Blood in urine','Pelvic pain','Discharge','Irregular periods','Erectile dysfunction','Groin pain','Kidney / Flank pain'],
+  skin: ['Rash','Itching','Hives','Blistering','Discoloration','Swelling','Wound / Ulcer','Hair loss','Nail changes'],
+  general: ['Fatigue / Exhaustion','Weight loss (unintentional)','Weight gain','Fever / Chills','Night sweats','Generalised weakness','Loss of appetite','Swollen lymph nodes','Anaemia symptoms']
+};
+
+const REGION_LABELS = {
+  head:'Head & Neurological', throat:'ENT (Ear/Nose/Throat)',
+  chest:'Chest & Cardiac', abdomen:'Abdomen & GI',
+  back:'Back & Spine', limbs:'Limbs & Joints',
+  urogenital:'Urogenital & Pelvic', skin:'Skin',
+  general:'General / Systemic'
+};
+
+const SVG_REGION_MAP = { head:'head', throat:'throat', chest:'chest', abdomen:'abdomen', urogenital:'urogenital', limbs:'limbs' };
+
+// ─── NAVIGATION ───
+function startAssessment() {
+  document.getElementById('modWelcome').classList.remove('active');
+  document.getElementById('progressBar').style.display = 'flex';
+  goTo(1);
+}
+
+function goTo(n) {
+  [1,2,3,4].forEach(i => {
+    document.getElementById('mod'+i).classList.remove('active');
+    document.getElementById('pill'+i)?.classList.remove('active','done');
+  });
+  document.getElementById('mod'+n).classList.add('active');
+  const pill = document.getElementById('pill'+n);
+  if(pill) pill.classList.add('active');
+  for(let i=1;i<n;i++) document.getElementById('pill'+i)?.classList.add('done');
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(n===2) renderSymptoms();
+}
+
+// ─── VITALS ───
+let selectedSex = 'Male';
+function setSex(s) {
+  selectedSex = s;
+  ['Male','Female','Other'].forEach(x => document.getElementById('sex_'+x.toLowerCase()).classList.remove('active'));
+  document.getElementById('sex_'+s.toLowerCase()).classList.add('active');
+}
+
+function calcBMI() {
+  const h = parseFloat(document.getElementById('f_height').value);
+  const w = parseFloat(document.getElementById('f_weight').value);
+  const valEl = document.getElementById('bmiVal');
+  const catEl = document.getElementById('bmiCat');
+  if(h>0 && w>0) {
+    const bmi = (w / ((h/100)**2)).toFixed(1);
+    valEl.textContent = bmi;
+    const b = parseFloat(bmi);
+    catEl.textContent = b<18.5 ? 'Underweight' : b<25 ? 'Normal Weight' : b<30 ? 'Overweight' : 'Obese';
+    catEl.style.color = b<18.5||b>=30 ? '#e05252' : b<25 ? '#00a896' : '#f0a500';
+  } else {
+    valEl.textContent = '—';
+    catEl.textContent = 'Enter height & weight';
+    catEl.style.color = '';
+  }
+}
+
+// ─── BODY MAP ───
+function selectRegion(region) {
+  if(state.selectedRegions.has(region)) {
+    state.selectedRegions.delete(region);
+  } else {
+    state.selectedRegions.add(region);
+  }
+  updateSVGHighlight();
+  renderRegionTabs();
+  renderSymptoms();
+}
+
+function updateSVGHighlight() {
+  document.querySelectorAll('.body-region').forEach(el => el.classList.remove('selected'));
+  state.selectedRegions.forEach(r => {
+    document.querySelectorAll(`[onclick*="selectRegion('${r}')"]`).forEach(el => el.classList.add('selected'));
+  });
+}
+
+function renderRegionTabs() {
+  const tabs = document.getElementById('regionTabs');
+  if(state.selectedRegions.size===0) {
+    tabs.innerHTML = '<span style="color:var(--text-muted);font-size:0.82rem">None selected — click on the body diagram</span>';
+    return;
+  }
+  tabs.innerHTML = '';
+  // Add General always available
+  const allRegions = ['general','skin',...state.selectedRegions];
+  const unique = [...new Set(allRegions)];
+  unique.forEach(r => {
+    const tag = document.createElement('span');
+    tag.className = 'region-tag active';
+    tag.textContent = REGION_LABELS[r] || r;
+    tag.onclick = () => {};
+    tabs.appendChild(tag);
+  });
+  const gen = document.createElement('span');
+  gen.className = 'region-tag';
+  gen.textContent = '+ Add Region';
+  gen.style.cursor = 'pointer';
+  gen.onclick = () => {
+    const keys = Object.keys(SYMPTOM_MAP).filter(k=>!state.selectedRegions.has(k));
+    if(keys.length===0) return;
+    const r = prompt('Add region (type one):\n'+keys.map(k=>REGION_LABELS[k]).join(', '));
+    if(r) {
+      const found = Object.keys(REGION_LABELS).find(k=>REGION_LABELS[k].toLowerCase()===r.toLowerCase());
+      if(found) { state.selectedRegions.add(found); updateSVGHighlight(); renderRegionTabs(); renderSymptoms(); }
+    }
+  };
+  tabs.appendChild(gen);
+}
+
+function renderSymptoms() {
+  const list = document.getElementById('symptomList');
+  const allRegions = [...new Set(['general','skin',...state.selectedRegions])];
+  const allSymptoms = [...new Set(allRegions.flatMap(r=>SYMPTOM_MAP[r]||[]))].sort();
+  if(allSymptoms.length===0) {
+    list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;grid-column:1/-1">Select a body region to see relevant symptoms</p>';
+    return;
+  }
+  list.innerHTML = allSymptoms.map(s => `
+    <div class="symptom-check ${state.selectedSymptoms.has(s)?'checked':''}" onclick="toggleSymptom('${s.replace(/'/g,"\\'")}', this)">
+      <div class="chk-box">${state.selectedSymptoms.has(s)?'✓':''}</div>
+      ${s}
+    </div>
+  `).join('');
+}
+
+function toggleSymptom(s, el) {
+  if(state.selectedSymptoms.has(s)) {
+    state.selectedSymptoms.delete(s);
+    el.classList.remove('checked');
+    el.querySelector('.chk-box').textContent = '';
+  } else {
+    state.selectedSymptoms.add(s);
+    el.classList.add('checked');
+    el.querySelector('.chk-box').textContent = '✓';
+  }
+}
+
+let selectedDuration = '';
+function setDuration(btn, val) {
+  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedDuration = val;
+}
+
+// ─── FILE UPLOAD ───
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('dragover'); }
+function handleDragLeave(e) { document.getElementById('uploadZone').classList.remove('dragover'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+}
+
+function handleFiles(files) {
+  [...files].forEach(file => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const data = { name: file.name, type: file.type, base64: e.target.result.split(',')[1], label: 'Photo', text: '' };
+      if(file.type === 'application/pdf') {
+        data.text = await extractPDFText(e.target.result);
+      }
+      state.uploadedFiles.push(data);
+      renderFilePreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function extractPDFText(dataUrl) {
+  try {
+    if(typeof pdfjsLib === 'undefined') return '[PDF text extraction unavailable]';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument(dataUrl).promise;
+    let text = '';
+    for(let i=1;i<=Math.min(pdf.numPages,10);i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(it=>it.str).join(' ') + '\n';
+    }
+    return text;
+  } catch(err) { return '[Could not extract PDF text]'; }
+}
+
+function renderFilePreviews() {
+  const previews = document.getElementById('filePreviews');
+  previews.innerHTML = state.uploadedFiles.map((f,i) => `
+    <div class="file-preview-card">
+      <button class="remove-file" onclick="removeFile(${i})">✕</button>
+      ${f.type.startsWith('image/') ? `<img src="data:${f.type};base64,${f.base64}" alt="${f.name}">` : '<div style="font-size:2rem;text-align:center;padding:10px">📄</div>'}
+      <div class="file-name">${f.name}</div>
+      <select onchange="state.uploadedFiles[${i}].label=this.value">
+        <option value="Photo">📷 Photo</option>
+        <option value="X-ray">🩻 X-ray / Scan</option>
+        <option value="Lab Report">🧪 Lab Report</option>
+        <option value="Prescription">💊 Prescription</option>
+        <option value="Other">📎 Other</option>
+      </select>
+    </div>
+  `).join('');
+}
+
+function removeFile(i) {
+  state.uploadedFiles.splice(i,1);
+  renderFilePreviews();
+}
+
+// ─── ANALYSIS ───
+async function runAnalysis() {
+  const loaderSubs = ['Parsing vitals and demographics…','Correlating symptoms with clinical patterns…','Running differential diagnosis engine…','Analysing uploaded documents…','Generating medication recommendations…'];
+  let subIdx = 0;
+  const loaderInterval = setInterval(() => {
+    subIdx = (subIdx+1)%loaderSubs.length;
+    document.getElementById('loaderSub').textContent = loaderSubs[subIdx];
+  }, 2200);
+
+  document.getElementById('loader').classList.add('active');
+
+  try {
+    const patientData = collectPatientData();
+    const messages = buildAPIMessages(patientData);
+    const response = await callAPI(messages);
+    clearInterval(loaderInterval);
+
+    state.diagnosisContext = JSON.stringify(patientData);
+    state.chatHistory = [
+      { role: 'user', content: buildUserPromptText(patientData) },
+      { role: 'assistant', content: response }
+    ];
+
+    renderResults(patientData, response);
+    goTo(4);
+  } catch(err) {
+    clearInterval(loaderInterval);
+    alert('API Error: ' + err.message + '\n\nPlease ensure you are running this via the Claude artifact environment.');
+    console.error(err);
+  } finally {
+    document.getElementById('loader').classList.remove('active');
+  }
+}
+
+function collectPatientData() {
+  return {
+    name: document.getElementById('f_name').value || 'Patient',
+    age: document.getElementById('f_age').value || 'Not provided',
+    sex: selectedSex,
+    height: document.getElementById('f_height').value,
+    weight: document.getElementById('f_weight').value,
+    bmi: document.getElementById('bmiVal').textContent,
+    pulse: document.getElementById('f_pulse').value,
+    bp: document.getElementById('f_bp').value,
+    temperature: document.getElementById('f_temp').value,
+    rr: document.getElementById('f_rr').value,
+    spo2: document.getElementById('f_spo2').value,
+    sugar: document.getElementById('f_sugar').value,
+    conditions: document.getElementById('f_conditions').value,
+    medications: document.getElementById('f_meds').value,
+    family: document.getElementById('f_family').value,
+    regions: [...state.selectedRegions].map(r=>REGION_LABELS[r]).join(', ') || 'Not specified',
+    symptoms: [...state.selectedSymptoms].join(', ') || 'Not specified',
+    description: document.getElementById('f_desc').value,
+    severity: document.getElementById('f_severity').value,
+    duration: selectedDuration || 'Not specified',
+    filesCount: state.uploadedFiles.length
+  };
+}
+
+function buildUserPromptText(d) {
+  return `PATIENT ASSESSMENT REQUEST
+
+DEMOGRAPHICS:
+- Name: ${d.name} | Age: ${d.age} | Sex: ${d.sex}
+- Height: ${d.height||'NP'} cm | Weight: ${d.weight||'NP'} kg | BMI: ${d.bmi}
+
+VITALS:
+- Pulse: ${d.pulse||'NP'} bpm | BP: ${d.bp||'NP'} | Temp: ${d.temperature||'NP'} °F
+- Respiratory Rate: ${d.rr||'NP'} /min | SpO2: ${d.spo2||'NP'}% | Blood Sugar: ${d.sugar||'NP'} mg/dL
+
+MEDICAL HISTORY:
+- Known conditions: ${d.conditions||'None reported'}
+- Current medications: ${d.medications||'None reported'}
+- Family history: ${d.family||'None reported'}
+
+PRESENTING COMPLAINT:
+- Affected region(s): ${d.regions}
+- Symptoms: ${d.symptoms}
+- Patient description: ${d.description||'None provided'}
+- Severity: ${d.severity}/10
+- Duration: ${d.duration}
+${d.filesCount>0 ? `\nUPLOADED DOCUMENTS: ${d.filesCount} file(s) provided for review.` : ''}
+
+Please provide a comprehensive clinical assessment.`;
+}
+
+function buildAPIMessages(d) {
+  const textContent = { type: 'text', text: buildUserPromptText(d) };
+  const content = [textContent];
+
+  state.uploadedFiles.forEach(f => {
+    if(f.type.startsWith('image/')) {
+      content.push({ type: 'text', text: `\n[UPLOADED ${f.label.toUpperCase()}: ${f.name}]` });
+      content.push({ type: 'image', source: { type: 'base64', media_type: f.type, data: f.base64 } });
+    } else if(f.text) {
+      content.push({ type: 'text', text: `\n[UPLOADED ${f.label.toUpperCase()}: ${f.name}]\n${f.text}` });
+    }
+  });
+
+  return [{ role: 'user', content }];
+}
+
+async function callAPI(messages) {
+  const systemPrompt = `You are MediScan AI, an expert clinical decision-support system with the combined knowledge of a senior physician across General Medicine, Internal Medicine, Cardiology, Pulmonology, Gastroenterology, Neurology, and all major specialties.
+
+Your response must follow this EXACT structured format with these section headers:
+
+## 🚨 EMERGENCY ALERT
+[ONLY include this section if symptoms suggest a life-threatening emergency requiring immediate ER attendance. Otherwise omit entirely.]
+
+## 📊 CLINICAL SUMMARY
+[2-3 sentences summarising the clinical picture based on vitals, history, and symptoms]
+
+## 🔬 DIFFERENTIAL DIAGNOSIS
+[List the top 3-5 most likely diagnoses, ordered by probability. For each provide:
+- **Diagnosis name** (Likelihood: High/Medium/Low)
+- Clinical reasoning: Why this fits the presentation
+- Key supporting features from the history/vitals]
+
+## 🧪 RECOMMENDED INVESTIGATIONS
+[List investigations in order of priority: blood tests, imaging, specialist referrals. Be specific — include test names, rationale.]
+
+## 💊 SUGGESTED TREATMENT & MEDICATION
+[For each medication: Generic Name | Dose | Frequency | Duration | Key precautions
+Note: These are general guidelines only. Doses must be confirmed by a prescribing physician.]
+
+## 🥗 LIFESTYLE & SUPPORTIVE MEASURES
+[Practical, specific advice on diet, activity, rest, monitoring]
+
+## ⚠️ RED FLAGS — SEEK IMMEDIATE CARE IF:
+[List specific warning symptoms that should prompt emergency attendance]
+
+If images or documents were uploaded, analyse them in the relevant sections. Be clinically precise. Use medical terminology where appropriate but explain it briefly for patient understanding. Do not be excessively hedging — give your best clinical assessment.`;
+
+  const resp = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages
+    })
+  });
+
+  if(!resp.ok) {
+    const err = await resp.json().catch(()=>({}));
+    throw new Error(err.error?.message || `HTTP ${resp.status}`);
+  }
+
+  const data = await resp.json();
+  return data.content.map(c=>c.text||'').join('');
+}
+
+// ─── RENDER RESULTS ───
+function renderResults(d, responseText) {
+  document.getElementById('reportTimestamp').textContent =
+    'Generated ' + new Date().toLocaleString('en-IN', {dateStyle:'long', timeStyle:'short'});
+
+  // Patient summary card
+  const items = [
+    ['Patient', d.name!='Patient'?d.name:'—'],
+    ['Age / Sex', `${d.age} / ${d.sex}`],
+    ['BMI', d.bmi],
+    ['BP', d.bp||'—'],
+    ['Pulse', d.pulse?d.pulse+' bpm':'—'],
+    ['SpO₂', d.spo2?d.spo2+'%':'—'],
+    ['Temp', d.temperature?d.temperature+'°F':'—'],
+    ['Severity', d.severity+'/10'],
+    ['Duration', d.duration||'—']
+  ];
+  document.getElementById('patientSummary').innerHTML = items.map(([l,v])=>`
+    <div class="ps-item"><span class="ps-label">${l}</span><span class="ps-val">${v}</span></div>
+  `).join('');
+
+  // Check for emergency
+  const hasEmergency = responseText.includes('🚨 EMERGENCY ALERT') && !responseText.includes('🚨 EMERGENCY ALERT\n[ONLY');
+  if(hasEmergency) {
+    const em = document.getElementById('emergencyBanner');
+    em.style.display = 'flex';
+    em.innerHTML = `
+      <div class="emergency-banner">
+        <span class="em-icon">🚨</span>
+        <div>
+          <h3>EMERGENCY — Seek Immediate Medical Attention</h3>
+          <p>The AI has identified features in your presentation that may require urgent or emergency medical care. Please call emergency services or proceed to the nearest Emergency Room immediately.</p>
+        </div>
+      </div>`;
+  }
+
+  // Render main response
+  const formatted = formatResponseHTML(responseText);
+  document.getElementById('resultsBody').innerHTML = formatted;
+}
+
+function formatResponseHTML(text) {
+  const sections = text.split(/\n## /);
+  return sections.map((section,i) => {
+    if(i===0 && !section.startsWith('#')) {
+      return section ? `<div class="result-prose">${escHtml(section)}</div>` : '';
+    }
+    const lines = section.split('\n');
+    const title = lines[0].replace(/^#+\s*/,'');
+    const body = lines.slice(1).join('\n').trim();
+    if(title.includes('EMERGENCY ALERT')) return '';
+    return `
+      <div class="result-section">
+        <h3><span class="dot"></span>${title}</h3>
+        <div class="result-prose">${renderMarkdown(body)}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderMarkdown(text) {
+  return escHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/gs, '<ul style="padding-left:20px;margin:8px 0">$&</ul>')
+    .replace(/\n{2,}/g, '</p><p style="margin-top:8px">')
+    .replace(/^(.)/,'<p>$1').replace(/(.)$/,'$1</p>');
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── CHAT ───
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = '';
+
+  appendChatMsg(msg, 'user');
+  state.chatHistory.push({ role: 'user', content: msg });
+
+  const typingEl = appendChatMsg('…', 'ai');
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: 'You are MediScan AI, continuing a clinical consultation. Answer the follow-up question based on the prior assessment context. Be clear, helpful, and appropriately cautious. Remind the patient to consult a physician for any treatment decisions.',
+        messages: state.chatHistory
+      })
+    });
+    const data = await resp.json();
+    const reply = data.content.map(c=>c.text||'').join('');
+    typingEl.textContent = reply;
+    state.chatHistory.push({ role: 'assistant', content: reply });
+  } catch(err) {
+    typingEl.textContent = 'Error: ' + err.message;
+  }
+}
+
+function appendChatMsg(text, role) {
+  const wrap = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.textContent = text;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+// ─── DOWNLOAD ───
+function downloadReport() {
+  const content = document.getElementById('resultsCard').innerText;
+  const blob = new Blob([content], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'MediScan_Report_' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click();
+}
+
+// ─── RESET ───
+function resetApp() {
+  if(!confirm('Start a new assessment? This will clear all current data.')) return;
+  state.selectedRegions.clear();
+  state.selectedSymptoms.clear();
+  state.uploadedFiles = [];
+  state.chatHistory = [];
+  state.duration = '';
+  selectedDuration = '';
+  selectedSex = 'Male';
+  document.querySelectorAll('input[type=text], input[type=number], textarea').forEach(el=>el.value='');
+  document.getElementById('bmiVal').textContent='—';
+  document.getElementById('bmiCat').textContent='Enter height & weight';
+  setSex('Male');
+  document.getElementById('emergencyBanner').style.display='none';
+  document.getElementById('chatMessages').innerHTML='';
+  document.getElementById('filePreviews').innerHTML='';
+  document.getElementById('progressBar').style.display='none';
+  document.getElementById('modWelcome').classList.add('active');
+  goTo(1);
+  document.getElementById('modWelcome').classList.add('active');
+  document.getElementById('mod1').classList.remove('active');
+  document.getElementById('progressBar').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
