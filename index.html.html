@@ -3,781 +3,237 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MediScan AI — Clinical Decision Support</title>
+<title>MediScan AI v2 — Clinical Decision Support</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-  :root {
-    --navy: #0d1b2a;
-    --navy-mid: #1a2f45;
-    --navy-light: #243b55;
-    --teal: #00a896;
-    --teal-light: #02c5b0;
-    --teal-dim: rgba(0,168,150,0.15);
-    --gold: #e8c468;
-    --cream: #f5f0e8;
-    --white: #ffffff;
-    --red: #e05252;
-    --red-dim: rgba(224,82,82,0.12);
-    --amber: #f0a500;
-    --text-primary: #0d1b2a;
-    --text-secondary: #4a6278;
-    --text-muted: #8a9fb5;
-    --border: rgba(13,27,42,0.12);
-    --border-teal: rgba(0,168,150,0.3);
-    --shadow: 0 4px 24px rgba(13,27,42,0.08);
-    --shadow-md: 0 8px 40px rgba(13,27,42,0.14);
-    --radius: 16px;
-    --radius-sm: 10px;
-  }
+:root {
+  --navy:#0d1b2a;--navy-mid:#1a2f45;--navy-light:#243b55;
+  --teal:#00a896;--teal-light:#02c5b0;--teal-dim:rgba(0,168,150,0.15);
+  --gold:#e8c468;--cream:#f5f0e8;--white:#ffffff;
+  --red:#e05252;--red-dim:rgba(224,82,82,0.12);--amber:#f0a500;
+  --text-primary:#0d1b2a;--text-secondary:#4a6278;--text-muted:#8a9fb5;
+  --border:rgba(13,27,42,0.12);--border-teal:rgba(0,168,150,0.3);
+  --shadow:0 4px 24px rgba(13,27,42,0.08);
+  --radius:16px;--radius-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--cream);color:var(--text-primary);min-height:100vh;overflow-x:hidden;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* HEADER */
+header{background:var(--navy);padding:16px 36px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,0.3);}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:40px;height:40px;background:var(--teal);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.logo-text h1{font-family:'Playfair Display',serif;color:var(--white);font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;}
+.logo-text p{color:var(--teal-light);font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:500;}
+.header-right{display:flex;gap:10px;align-items:center;}
+.header-badge{background:rgba(0,168,150,0.15);border:1px solid var(--border-teal);color:var(--teal-light);padding:5px 12px;border-radius:20px;font-size:0.72rem;font-weight:500;}
+.records-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--white);padding:6px 14px;border-radius:20px;font-size:0.78rem;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all 0.2s;}
+.records-btn:hover{background:rgba(255,255,255,0.15);}
 
-  body {
-    font-family: 'IBM Plex Sans', sans-serif;
-    background: var(--cream);
-    color: var(--text-primary);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* PROGRESS */
+.progress-bar-wrap{background:var(--navy-mid);padding:0 36px;display:flex;align-items:center;flex-wrap:wrap;}
+.step-pill{display:flex;align-items:center;gap:7px;padding:11px 16px;border-bottom:3px solid transparent;transition:all 0.3s;color:var(--text-muted);font-size:0.78rem;font-weight:500;white-space:nowrap;}
+.step-pill.active{color:var(--teal-light);border-bottom-color:var(--teal);}
+.step-pill.done{color:var(--teal);}
+.step-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;}
+.step-pill.active .step-num{background:var(--teal);color:var(--navy);}
+.step-pill.done .step-num{background:var(--teal-dim);color:var(--teal);}
 
-  /* ─── HEADER ─── */
-  header {
-    background: var(--navy);
-    padding: 20px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .logo-icon {
-    width: 42px; height: 42px;
-    background: var(--teal);
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-  }
-  .logo-text h1 {
-    font-family: 'Playfair Display', serif;
-    color: var(--white);
-    font-size: 1.4rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-  .logo-text p {
-    color: var(--teal-light);
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-weight: 500;
-  }
-  .header-badge {
-    background: rgba(0,168,150,0.15);
-    border: 1px solid var(--border-teal);
-    color: var(--teal-light);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-  }
+/* MAIN */
+main{max-width:960px;margin:0 auto;padding:36px 22px 80px;}
 
-  /* ─── PROGRESS BAR ─── */
-  .progress-bar-wrap {
-    background: var(--navy-mid);
-    padding: 0 40px;
-    display: flex;
-    align-items: center;
-    gap: 0;
-  }
-  .step-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    cursor: default;
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s;
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .step-pill.active { color: var(--teal-light); border-bottom-color: var(--teal); }
-  .step-pill.done { color: var(--teal); }
-  .step-num {
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.72rem;
-    font-weight: 600;
-  }
-  .step-pill.active .step-num { background: var(--teal); color: var(--navy); }
-  .step-pill.done .step-num { background: var(--teal-dim); color: var(--teal); }
+/* CARDS */
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:32px;margin-bottom:22px;border:1px solid var(--border);animation:fadeUp 0.35s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.card-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border);}
+.card-icon{width:42px;height:42px;background:var(--teal-dim);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.card-header h2{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--text-primary);font-weight:600;}
+.card-header p{font-size:0.8rem;color:var(--text-muted);margin-top:2px;}
 
-  /* ─── MAIN ─── */
-  main {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 40px 24px 80px;
-  }
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr;}
+.form-grid.full{grid-template-columns:1fr;}
+@media(max-width:620px){.form-grid,.form-grid.three{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:0.75rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;}
+.field label .tip{cursor:help;color:var(--teal);font-size:0.82rem;}
+.field input,.field select,.field textarea{background:#f9fafb;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;font-family:'IBM Plex Sans',sans-serif;font-size:0.88rem;color:var(--text-primary);transition:border-color 0.2s,box-shadow 0.2s;outline:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-dim);background:var(--white);}
+.field textarea{resize:vertical;min-height:80px;}
+.field .unit{font-size:0.72rem;color:var(--text-muted);}
 
-  /* ─── SECTION CARDS ─── */
-  .card {
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 36px;
-    margin-bottom: 24px;
-    border: 1px solid var(--border);
-    animation: fadeUp 0.4s ease both;
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 28px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .card-icon {
-    width: 44px; height: 44px;
-    background: var(--teal-dim);
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-  }
-  .card-header h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.3rem;
-    color: var(--text-primary);
-    font-weight: 600;
-  }
-  .card-header p {
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
+/* SEX TOGGLE */
+.sex-toggle{display:flex;gap:8px;}
+.sex-btn{flex:1;padding:9px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:#f9fafb;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:0.85rem;font-weight:500;color:var(--text-secondary);transition:all 0.2s;text-align:center;}
+.sex-btn.active{border-color:var(--teal);background:var(--teal-dim);color:var(--teal);}
 
-  /* ─── FORM ELEMENTS ─── */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
-  }
-  .form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
-  .form-grid.full { grid-template-columns: 1fr; }
-  @media (max-width: 600px) {
-    .form-grid, .form-grid.three { grid-template-columns: 1fr; }
-  }
+/* BMI */
+.bmi-display{background:var(--navy);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.bmi-val{font-family:'IBM Plex Mono',monospace;font-size:1.5rem;color:var(--teal-light);font-weight:500;}
+.bmi-label{font-size:0.72rem;color:var(--text-muted);text-align:right;}
+.bmi-category{font-size:0.88rem;font-weight:600;color:var(--gold);}
 
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .field label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .field label .tip {
-    cursor: help;
-    color: var(--teal);
-    font-size: 0.85rem;
-    position: relative;
-  }
-  .field input, .field select, .field textarea {
-    background: #f9fafb;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 11px 14px;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    border-color: var(--teal);
-    box-shadow: 0 0 0 3px var(--teal-dim);
-    background: var(--white);
-  }
-  .field textarea { resize: vertical; min-height: 90px; }
-  .field .unit {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
+/* DIVIDER */
+.section-divider{font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal);margin:24px 0 14px;display:flex;align-items:center;gap:8px;}
+.section-divider::after{content:'';flex:1;height:1px;background:var(--border-teal);}
 
-  /* Sex toggle */
-  .sex-toggle {
-    display: flex;
-    gap: 10px;
-  }
-  .sex-btn {
-    flex: 1;
-    padding: 10px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: #f9fafb;
-    cursor: pointer;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    transition: all 0.2s;
-    text-align: center;
-  }
-  .sex-btn.active {
-    border-color: var(--teal);
-    background: var(--teal-dim);
-    color: var(--teal);
-  }
+/* ── BODY MAP v2 ── */
+.body-map-wrap{display:flex;gap:24px;align-items:flex-start;}
+@media(max-width:700px){.body-map-wrap{flex-direction:column;}}
+.body-svg-outer{flex-shrink:0;width:220px;}
+.body-svg-outer svg{width:100%;}
 
-  /* BMI display */
-  .bmi-display {
-    background: var(--navy);
-    border-radius: var(--radius-sm);
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 4px;
-  }
-  .bmi-display .bmi-val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 1.6rem;
-    color: var(--teal-light);
-    font-weight: 500;
-  }
-  .bmi-display .bmi-label {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    text-align: right;
-  }
-  .bmi-display .bmi-category {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--gold);
-  }
+/* SVG regions */
+.bregion{fill:#e8f4f8;stroke:#a0c4d8;stroke-width:1.2;cursor:pointer;transition:fill 0.18s,stroke 0.18s;}
+.bregion:hover{fill:#b8e0d8;stroke:var(--teal);}
+.bregion.sel{fill:var(--teal);stroke:var(--navy-mid);}
+.bregion-label{font-size:5.5px;fill:#4a6278;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;}
 
-  /* Section divider */
-  .section-divider {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--teal);
-    margin: 28px 0 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .section-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-teal);
-  }
+/* Region legend */
+.body-legend{display:flex;flex-direction:column;gap:4px;margin-top:10px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--text-muted);cursor:pointer;padding:3px 6px;border-radius:6px;transition:background 0.15s;}
+.legend-item:hover{background:var(--teal-dim);}
+.legend-dot{width:10px;height:10px;border-radius:3px;background:var(--teal-dim);border:1.5px solid var(--teal);flex-shrink:0;}
+.legend-item.sel .legend-dot{background:var(--teal);}
+.legend-item.sel{color:var(--teal);font-weight:600;}
 
-  /* ─── BODY MAP ─── */
-  .body-map-wrap {
-    display: flex;
-    gap: 28px;
-    align-items: flex-start;
-  }
-  @media (max-width: 650px) {
-    .body-map-wrap { flex-direction: column; }
-  }
-  .body-svg-container {
-    flex-shrink: 0;
-    width: 200px;
-  }
-  .body-svg-container svg {
-    width: 100%;
-    cursor: pointer;
-  }
-  .body-region {
-    fill: #e8f4f8;
-    stroke: #b0ccd8;
-    stroke-width: 1.5;
-    transition: fill 0.2s;
-    cursor: pointer;
-  }
-  .body-region:hover { fill: #b2e0d8; }
-  .body-region.selected { fill: var(--teal); stroke: var(--navy); }
+/* Symptom panel */
+.symptom-panel{flex:1;min-width:0;}
+.region-tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+.rtag{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);font-size:0.78rem;font-weight:500;cursor:pointer;transition:all 0.18s;color:var(--text-secondary);background:#f9fafb;}
+.rtag.active{border-color:var(--teal);background:var(--teal-dim);color:var(--teal);}
+.rtag .rtag-x{margin-left:5px;opacity:0.6;}
 
-  .symptom-panel {
-    flex: 1;
-  }
-  .region-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 18px;
-  }
-  .region-tag {
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 1.5px solid var(--border);
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--text-secondary);
-    background: #f9fafb;
-  }
-  .region-tag.active {
-    border-color: var(--teal);
-    background: var(--teal-dim);
-    color: var(--teal);
-  }
+.symptom-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px;}
+@media(max-width:500px){.symptom-grid{grid-template-columns:1fr;}}
+.sym-chip{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f9fafb;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.16s;font-size:0.82rem;color:var(--text-secondary);user-select:none;}
+.sym-chip:hover{border-color:var(--teal);background:var(--teal-dim);}
+.sym-chip.on{border-color:var(--teal);background:var(--teal-dim);color:var(--teal);font-weight:500;}
+.chkbox{width:16px;height:16px;border-radius:4px;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
 
-  .symptom-checklist {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 18px;
-  }
-  @media (max-width: 500px) { .symptom-checklist { grid-template-columns: 1fr; } }
-  .symptom-check {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: #f9fafb;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all 0.18s;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    user-select: none;
-  }
-  .symptom-check:hover { border-color: var(--teal); background: var(--teal-dim); }
-  .symptom-check.checked {
-    border-color: var(--teal);
-    background: var(--teal-dim);
-    color: var(--teal);
-    font-weight: 500;
-  }
-  .symptom-check .chk-box {
-    width: 18px; height: 18px;
-    border-radius: 5px;
-    border: 2px solid currentColor;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
-    flex-shrink: 0;
-  }
+/* Duration */
+.dur-opts{display:flex;gap:7px;flex-wrap:wrap;}
+.dur-btn{padding:6px 13px;border:1.5px solid var(--border);border-radius:20px;background:#f9fafb;font-size:0.78rem;cursor:pointer;transition:all 0.18s;color:var(--text-secondary);font-family:'IBM Plex Sans',sans-serif;}
+.dur-btn.active{border-color:var(--teal);background:var(--teal-dim);color:var(--teal);font-weight:600;}
 
-  /* Severity slider */
-  .severity-wrap {
-    margin-top: 16px;
-  }
-  .severity-wrap label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 10px;
-    display: block;
-  }
-  input[type="range"] {
-    width: 100%;
-    accent-color: var(--teal);
-  }
-  .severity-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    margin-top: 4px;
-  }
+/* Severity */
+.sev-wrap{margin-top:14px;}
+.sev-wrap label{font-size:0.75rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;display:block;}
+input[type=range]{width:100%;accent-color:var(--teal);}
+.sev-labels{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);margin-top:3px;}
 
-  /* Duration select */
-  .duration-opts {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-  }
-  .dur-btn {
-    padding: 7px 14px;
-    border: 1.5px solid var(--border);
-    border-radius: 20px;
-    background: #f9fafb;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--text-secondary);
-    font-family: 'IBM Plex Sans', sans-serif;
-  }
-  .dur-btn.active {
-    border-color: var(--teal);
-    background: var(--teal-dim);
-    color: var(--teal);
-    font-weight: 600;
-  }
+/* SLEEP MODULE */
+.sleep-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+@media(max-width:620px){.sleep-grid{grid-template-columns:1fr 1fr;}}
+.sleep-opt-group{display:flex;flex-direction:column;gap:6px;}
+.sleep-opt-group label{font-size:0.75rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;}
+.opt-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.opt-chip{padding:5px 11px;border:1.5px solid var(--border);border-radius:16px;font-size:0.78rem;cursor:pointer;transition:all 0.16s;color:var(--text-secondary);background:#f9fafb;font-family:'IBM Plex Sans',sans-serif;}
+.opt-chip.on{border-color:var(--teal);background:var(--teal-dim);color:var(--teal);font-weight:600;}
 
-  /* ─── FILE UPLOAD ─── */
-  .upload-zone {
-    border: 2px dashed var(--border-teal);
-    border-radius: var(--radius);
-    padding: 40px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--teal-dim);
-    position: relative;
-  }
-  .upload-zone:hover, .upload-zone.dragover {
-    border-color: var(--teal);
-    background: rgba(0,168,150,0.1);
-  }
-  .upload-zone input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer;
-  }
-  .upload-zone .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
-  .upload-zone p { color: var(--text-secondary); font-size: 0.9rem; }
-  .upload-zone small { color: var(--text-muted); font-size: 0.78rem; }
+/* DIET MODULE */
+.diet-checks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+@media(max-width:620px){.diet-checks{grid-template-columns:1fr 1fr;}}
+.diet-chip{display:flex;align-items:center;gap:7px;padding:9px 12px;background:#f9fafb;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:0.82rem;color:var(--text-secondary);transition:all 0.16s;user-select:none;}
+.diet-chip.on{border-color:var(--teal);background:var(--teal-dim);color:var(--teal);font-weight:500;}
 
-  .file-previews {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    margin-top: 16px;
-  }
-  .file-preview-card {
-    background: #f9fafb;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 14px;
-    position: relative;
-  }
-  .file-preview-card .file-name {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 6px;
-    word-break: break-all;
-  }
-  .file-preview-card select {
-    width: 100%;
-    font-size: 0.78rem;
-    padding: 5px 8px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: white;
-    margin-top: 6px;
-    font-family: 'IBM Plex Sans', sans-serif;
-  }
-  .file-preview-card img {
-    width: 100%;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 6px;
-    margin-bottom: 8px;
-  }
-  .remove-file {
-    position: absolute;
-    top: 8px; right: 8px;
-    width: 22px; height: 22px;
-    background: var(--red);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 12px;
-    display: flex; align-items: center; justify-content: center;
-  }
+/* FILE UPLOAD */
+.upload-zone{border:2px dashed var(--border-teal);border-radius:var(--radius);padding:36px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--teal-dim);position:relative;}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--teal);background:rgba(0,168,150,0.1);}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.upload-zone .upload-icon{font-size:2.2rem;margin-bottom:8px;}
+.upload-zone p{color:var(--text-secondary);font-size:0.88rem;}
+.upload-zone small{color:var(--text-muted);font-size:0.76rem;}
+.file-previews{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:14px;}
+.fp-card{background:#f9fafb;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;position:relative;}
+.fp-card .fn{font-size:0.76rem;font-weight:600;color:var(--text-primary);word-break:break-all;margin-bottom:5px;}
+.fp-card select{width:100%;font-size:0.76rem;padding:4px 7px;border:1px solid var(--border);border-radius:6px;background:white;margin-top:5px;font-family:'IBM Plex Sans',sans-serif;}
+.fp-card img{width:100%;height:80px;object-fit:cover;border-radius:6px;margin-bottom:6px;}
+.rm-file{position:absolute;top:7px;right:7px;width:20px;height:20px;background:var(--red);color:white;border:none;border-radius:50%;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;}
 
-  /* ─── BUTTONS ─── */
-  .btn {
-    padding: 13px 28px;
-    border-radius: var(--radius-sm);
-    border: none;
-    cursor: pointer;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.92rem;
-    font-weight: 600;
-    transition: all 0.22s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .btn-primary {
-    background: var(--teal);
-    color: var(--white);
-  }
-  .btn-primary:hover { background: var(--teal-light); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,168,150,0.35); }
-  .btn-secondary {
-    background: transparent;
-    color: var(--teal);
-    border: 1.5px solid var(--teal);
-  }
-  .btn-secondary:hover { background: var(--teal-dim); }
-  .btn-navy {
-    background: var(--navy);
-    color: var(--white);
-  }
-  .btn-navy:hover { background: var(--navy-mid); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+/* BUTTONS */
+.btn{padding:11px 24px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:0.88rem;font-weight:600;transition:all 0.2s;display:inline-flex;align-items:center;gap:7px;}
+.btn-primary{background:var(--teal);color:var(--white);}
+.btn-primary:hover{background:var(--teal-light);transform:translateY(-1px);box-shadow:0 5px 18px rgba(0,168,150,0.35);}
+.btn-secondary{background:transparent;color:var(--teal);border:1.5px solid var(--teal);}
+.btn-secondary:hover{background:var(--teal-dim);}
+.btn-navy{background:var(--navy);color:var(--white);}
+.btn-navy:hover{background:var(--navy-mid);}
+.btn-danger{background:var(--red);color:var(--white);}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;flex-wrap:wrap;}
 
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 28px;
-  }
+/* LOADER */
+.loader-overlay{display:none;position:fixed;inset:0;background:rgba(13,27,42,0.88);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
+.loader-overlay.active{display:flex;}
+.loader-ring{width:60px;height:60px;border:4px solid rgba(0,168,150,0.2);border-top-color:var(--teal);border-radius:50%;animation:spin 0.85s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loader-text{color:var(--white);font-family:'Playfair Display',serif;font-size:1.15rem;}
+.loader-sub{color:var(--teal-light);font-size:0.8rem;animation:pulse 2s ease infinite;}
+@keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
 
-  /* ─── LOADER ─── */
-  .loader-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(13,27,42,0.85);
-    z-index: 999;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 24px;
-  }
-  .loader-overlay.active { display: flex; }
-  .loader-ring {
-    width: 64px; height: 64px;
-    border: 4px solid rgba(0,168,150,0.2);
-    border-top-color: var(--teal);
-    border-radius: 50%;
-    animation: spin 0.9s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loader-text {
-    color: var(--white);
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
-    text-align: center;
-  }
-  .loader-sub {
-    color: var(--teal-light);
-    font-size: 0.82rem;
-    text-align: center;
-    animation: pulse 2s ease infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+/* RESULTS */
+.emergency-banner{background:var(--red-dim);border:2px solid var(--red);border-radius:var(--radius-sm);padding:16px 20px;margin-bottom:18px;display:flex;align-items:flex-start;gap:12px;}
+.emergency-banner .em-icon{font-size:1.7rem;flex-shrink:0;}
+.emergency-banner h3{color:var(--red);font-size:0.95rem;font-weight:700;margin-bottom:3px;}
+.emergency-banner p{color:#c0392b;font-size:0.85rem;}
+.patient-summary-card{background:var(--navy);border-radius:var(--radius-sm);padding:18px 22px;display:flex;flex-wrap:wrap;gap:18px;margin-bottom:22px;}
+.ps-item{display:flex;flex-direction:column;gap:2px;}
+.ps-label{font-size:0.66rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;}
+.ps-val{font-family:'IBM Plex Mono',monospace;font-size:0.88rem;color:var(--teal-light);font-weight:500;}
+.result-section{margin-bottom:20px;}
+.result-section h3{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.result-section h3 .dot{width:9px;height:9px;background:var(--teal);border-radius:50%;flex-shrink:0;}
+.result-prose{font-size:0.87rem;color:var(--text-secondary);line-height:1.75;white-space:pre-wrap;}
+.result-prose strong{color:var(--text-primary);font-weight:600;}
+.disclaimer{background:#fffbf0;border-left:4px solid var(--gold);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:14px 18px;font-size:0.8rem;color:#7a6a30;line-height:1.6;margin-top:22px;}
+.disclaimer strong{color:#5a4a10;}
 
-  /* ─── RESULTS ─── */
-  .emergency-banner {
-    background: var(--red-dim);
-    border: 2px solid var(--red);
-    border-radius: var(--radius-sm);
-    padding: 18px 22px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    animation: fadeUp 0.4s ease;
-  }
-  .emergency-banner .em-icon { font-size: 1.8rem; flex-shrink: 0; }
-  .emergency-banner h3 { color: var(--red); font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-  .emergency-banner p { color: #c0392b; font-size: 0.88rem; }
+/* CHAT */
+.chat-wrap{margin-top:28px;border-top:1px solid var(--border);padding-top:24px;}
+.chat-wrap h3{font-family:'Playfair Display',serif;font-size:1rem;color:var(--navy);margin-bottom:14px;}
+.chat-messages{max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
+.chat-msg{padding:11px 15px;border-radius:var(--radius-sm);font-size:0.86rem;line-height:1.6;max-width:88%;animation:fadeUp 0.22s ease;}
+.chat-msg.user{background:var(--navy);color:var(--white);align-self:flex-end;}
+.chat-msg.ai{background:var(--teal-dim);color:var(--text-primary);align-self:flex-start;border:1px solid var(--border-teal);white-space:pre-wrap;}
+.chat-input-row{display:flex;gap:9px;}
+.chat-input-row input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'IBM Plex Sans',sans-serif;font-size:0.86rem;outline:none;transition:border-color 0.2s;}
+.chat-input-row input:focus{border-color:var(--teal);}
 
-  .result-section {
-    margin-bottom: 22px;
-  }
-  .result-section h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
-    color: var(--navy);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .result-section h3 .dot {
-    width: 10px; height: 10px;
-    background: var(--teal);
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+/* RECORDS MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,27,42,0.75);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.active{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius);padding:28px;width:100%;max-width:680px;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow);}
+.modal h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--navy);margin-bottom:20px;}
+.record-card{background:#f9fafb;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:12px;cursor:pointer;transition:all 0.18s;}
+.record-card:hover{border-color:var(--teal);background:var(--teal-dim);}
+.record-card .rc-date{font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;}
+.record-card .rc-patient{font-weight:600;font-size:0.95rem;color:var(--text-primary);margin-bottom:4px;}
+.record-card .rc-summary{font-size:0.8rem;color:var(--text-secondary);}
+.record-actions{display:flex;gap:8px;margin-top:10px;}
+.modal-close{float:right;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);margin-top:-4px;}
 
-  .result-prose {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    line-height: 1.75;
-    white-space: pre-wrap;
-  }
-  .result-prose strong { color: var(--text-primary); font-weight: 600; }
+/* MODULE VISIBILITY */
+.module{display:none;}
+.module.active{display:block;}
 
-  .patient-summary-card {
-    background: var(--navy);
-    border-radius: var(--radius-sm);
-    padding: 20px 24px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 24px;
-  }
-  .ps-item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .ps-label {
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .ps-val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.92rem;
-    color: var(--teal-light);
-    font-weight: 500;
-  }
+/* WELCOME */
+.welcome{text-align:center;padding:52px 16px 36px;animation:fadeUp 0.45s ease;}
+.welcome h2{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--navy);font-weight:700;line-height:1.2;margin-bottom:14px;}
+.welcome h2 span{color:var(--teal);}
+.welcome p{color:var(--text-secondary);font-size:0.95rem;max-width:520px;margin:0 auto 28px;line-height:1.7;}
+.welcome-features{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:36px;}
+.feat-chip{background:var(--white);border:1px solid var(--border);padding:7px 14px;border-radius:20px;font-size:0.8rem;color:var(--text-secondary);display:flex;align-items:center;gap:5px;}
 
-  /* ─── DISCLAIMER ─── */
-  .disclaimer {
-    background: #fffbf0;
-    border-left: 4px solid var(--gold);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    padding: 16px 20px;
-    font-size: 0.82rem;
-    color: #7a6a30;
-    line-height: 1.6;
-    margin-top: 24px;
-  }
-  .disclaimer strong { color: #5a4a10; }
-
-  /* ─── CHAT ─── */
-  .chat-wrap {
-    margin-top: 32px;
-    border-top: 1px solid var(--border);
-    padding-top: 28px;
-  }
-  .chat-wrap h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    color: var(--navy);
-    margin-bottom: 16px;
-  }
-  .chat-messages {
-    max-height: 340px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 14px;
-    padding-right: 4px;
-  }
-  .chat-msg {
-    padding: 12px 16px;
-    border-radius: var(--radius-sm);
-    font-size: 0.88rem;
-    line-height: 1.6;
-    max-width: 88%;
-    animation: fadeUp 0.25s ease;
-  }
-  .chat-msg.user {
-    background: var(--navy);
-    color: var(--white);
-    align-self: flex-end;
-  }
-  .chat-msg.ai {
-    background: var(--teal-dim);
-    color: var(--text-primary);
-    align-self: flex-start;
-    border: 1px solid var(--border-teal);
-    white-space: pre-wrap;
-  }
-  .chat-input-row {
-    display: flex;
-    gap: 10px;
-  }
-  .chat-input-row input {
-    flex: 1;
-    padding: 11px 16px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.88rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .chat-input-row input:focus { border-color: var(--teal); }
-
-  /* ─── MODULE VISIBILITY ─── */
-  .module { display: none; }
-  .module.active { display: block; }
-
-  /* ─── WELCOME ─── */
-  .welcome {
-    text-align: center;
-    padding: 60px 20px 40px;
-    animation: fadeUp 0.5s ease;
-  }
-  .welcome h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.4rem;
-    color: var(--navy);
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 16px;
-  }
-  .welcome h2 span { color: var(--teal); }
-  .welcome p {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    max-width: 540px;
-    margin: 0 auto 32px;
-    line-height: 1.7;
-  }
-  .welcome-features {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 40px;
-  }
-  .feat-chip {
-    background: var(--white);
-    border: 1px solid var(--border);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  /* Responsive */
-  @media (max-width: 600px) {
-    header { padding: 14px 20px; }
-    .header-badge { display: none; }
-    main { padding: 24px 14px 60px; }
-    .card { padding: 22px 18px; }
-  }
+@media(max-width:600px){
+  header{padding:12px 16px;}
+  .header-badge{display:none;}
+  main{padding:20px 12px 60px;}
+  .card{padding:20px 16px;}
+  .sleep-grid,.diet-checks{grid-template-columns:1fr 1fr;}
+}
 </style>
 </head>
 <body>
@@ -787,597 +243,749 @@
     <div class="logo-icon">⚕</div>
     <div class="logo-text">
       <h1>MediScan AI</h1>
-      <p>Clinical Decision Support</p>
+      <p>Clinical Decision Support · v2</p>
     </div>
   </div>
-  <div class="header-badge">🔒 Session Only · No Data Stored</div>
+  <div class="header-right">
+    <button class="records-btn" onclick="openRecords()">📂 Records</button>
+    <div class="header-badge">🔒 Private Session</div>
+  </div>
 </header>
 
 <div class="progress-bar-wrap" id="progressBar" style="display:none">
   <div class="step-pill active" id="pill1"><span class="step-num">1</span> Vitals</div>
   <div class="step-pill" id="pill2"><span class="step-num">2</span> Symptoms</div>
-  <div class="step-pill" id="pill3"><span class="step-num">3</span> Documents</div>
-  <div class="step-pill" id="pill4"><span class="step-num">4</span> Analysis</div>
+  <div class="step-pill" id="pill3"><span class="step-num">3</span> Sleep & Diet</div>
+  <div class="step-pill" id="pill4"><span class="step-num">4</span> Documents</div>
+  <div class="step-pill" id="pill5"><span class="step-num">5</span> Analysis</div>
 </div>
 
 <main>
 
-  <!-- WELCOME -->
-  <div class="module active" id="modWelcome">
-    <div class="welcome">
-      <h2>Your AI-Powered<br><span>Health Assessment</span></h2>
-      <p>MediScan AI guides you through a structured clinical assessment, analyses your vitals and symptoms, and provides a comprehensive differential diagnosis with recommendations.</p>
-      <div class="welcome-features">
-        <span class="feat-chip">🩺 Vitals Analysis</span>
-        <span class="feat-chip">🫀 Body Symptom Map</span>
-        <span class="feat-chip">🩻 X-Ray & Lab Review</span>
-        <span class="feat-chip">💊 Medication Suggestions</span>
-        <span class="feat-chip">🔒 Private Session</span>
-      </div>
-      <button class="btn btn-primary" style="font-size:1rem;padding:16px 40px" onclick="startAssessment()">
-        Begin Assessment →
-      </button>
-      <p style="margin-top:20px;font-size:0.78rem;color:var(--text-muted)">
-        ⚠️ MediScan AI is for informational purposes only. Always consult a licensed physician.
-      </p>
+<!-- WELCOME -->
+<div class="module active" id="modWelcome">
+  <div class="welcome">
+    <h2>Your AI-Powered<br><span>Health Assessment</span></h2>
+    <p>A structured clinical consultation covering vitals, symptoms, sleep health, nutrition, and document review — all in one session.</p>
+    <div class="welcome-features">
+      <span class="feat-chip">🩺 Vitals Analysis</span>
+      <span class="feat-chip">🫀 Detailed Body Map</span>
+      <span class="feat-chip">😴 Sleep Assessment</span>
+      <span class="feat-chip">🥗 Diet Advisory</span>
+      <span class="feat-chip">🩻 X-Ray & Lab Review</span>
+      <span class="feat-chip">📂 Saved Records</span>
     </div>
+    <button class="btn btn-primary" style="font-size:0.98rem;padding:14px 36px" onclick="startAssessment()">Begin Assessment →</button>
+    <p style="margin-top:16px;font-size:0.75rem;color:var(--text-muted)">⚠️ For informational purposes only. Always consult a licensed physician.</p>
   </div>
+</div>
 
-  <!-- MODULE 1: VITALS -->
-  <div class="module" id="mod1">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon">👤</div>
-        <div>
-          <h2>Demographics & Vitals</h2>
-          <p>Basic information and current measurements — all fields optional except age and sex</p>
-        </div>
-      </div>
+<!-- MODULE 1: VITALS -->
+<div class="module" id="mod1">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">👤</div>
+      <div><h2>Demographics & Vitals</h2><p>All fields optional except age and sex</p></div>
+    </div>
 
-      <div class="section-divider">Demographics</div>
-      <div class="form-grid">
-        <div class="field">
-          <label>Full Name <span class="tip" title="Optional — for report personalisation">ⓘ</span></label>
-          <input type="text" id="f_name" placeholder="Optional">
-        </div>
-        <div class="field">
-          <label>Age <span class="tip" title="Age in years">ⓘ</span></label>
-          <input type="number" id="f_age" placeholder="e.g. 42" min="1" max="120">
-        </div>
-      </div>
+    <div class="section-divider">Demographics</div>
+    <div class="form-grid">
+      <div class="field"><label>Full Name <span class="tip" title="Optional">ⓘ</span></label><input type="text" id="f_name" placeholder="Optional"></div>
+      <div class="field"><label>Age</label><input type="number" id="f_age" placeholder="Years" min="1" max="120"></div>
+    </div>
 
-      <div class="section-divider">Biological Sex</div>
-      <div class="sex-toggle">
-        <button class="sex-btn active" id="sex_male" onclick="setSex('Male')">♂ Male</button>
-        <button class="sex-btn" id="sex_female" onclick="setSex('Female')">♀ Female</button>
-        <button class="sex-btn" id="sex_other" onclick="setSex('Other')">⚥ Other</button>
-      </div>
+    <div class="section-divider">Biological Sex</div>
+    <div class="sex-toggle">
+      <button class="sex-btn active" id="sex_male" onclick="setSex('Male')">♂ Male</button>
+      <button class="sex-btn" id="sex_female" onclick="setSex('Female')">♀ Female</button>
+      <button class="sex-btn" id="sex_other" onclick="setSex('Other')">⚥ Other</button>
+    </div>
 
-      <div class="section-divider">Body Measurements</div>
-      <div class="form-grid three">
-        <div class="field">
-          <label>Height <span class="tip" title="Height in centimetres">ⓘ</span></label>
-          <input type="number" id="f_height" placeholder="cm" oninput="calcBMI()">
-        </div>
-        <div class="field">
-          <label>Weight <span class="tip" title="Weight in kilograms">ⓘ</span></label>
-          <input type="number" id="f_weight" placeholder="kg" oninput="calcBMI()">
-        </div>
-        <div class="field">
-          <label>BMI</label>
-          <div class="bmi-display" id="bmiDisplay">
-            <span class="bmi-val" id="bmiVal">—</span>
-            <div>
-              <div class="bmi-category" id="bmiCat">Enter height & weight</div>
-              <div class="bmi-label">Body Mass Index</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-divider">Current Vitals</div>
-      <div class="form-grid three">
-        <div class="field">
-          <label>Pulse <span class="tip" title="Heart rate in beats per minute">ⓘ</span></label>
-          <input type="number" id="f_pulse" placeholder="bpm">
-          <span class="unit">Normal: 60–100 bpm</span>
-        </div>
-        <div class="field">
-          <label>Blood Pressure <span class="tip" title="Systolic / Diastolic in mmHg">ⓘ</span></label>
-          <input type="text" id="f_bp" placeholder="e.g. 120/80">
-          <span class="unit">Normal: &lt;120/80 mmHg</span>
-        </div>
-        <div class="field">
-          <label>Temperature <span class="tip" title="Body temperature">ⓘ</span></label>
-          <input type="number" id="f_temp" placeholder="°F" step="0.1">
-          <span class="unit">Normal: 97–99 °F (36.1–37.2 °C)</span>
-        </div>
-        <div class="field">
-          <label>Breathing Rate <span class="tip" title="Breaths per minute">ⓘ</span></label>
-          <input type="number" id="f_rr" placeholder="breaths/min">
-          <span class="unit">Normal: 12–20 /min</span>
-        </div>
-        <div class="field">
-          <label>SpO₂ <span class="tip" title="Oxygen saturation — from pulse oximeter">ⓘ</span></label>
-          <input type="number" id="f_spo2" placeholder="%" min="70" max="100">
-          <span class="unit">Normal: 95–100%</span>
-        </div>
-        <div class="field">
-          <label>Blood Sugar <span class="tip" title="Fasting blood glucose mg/dL (optional)">ⓘ</span></label>
-          <input type="number" id="f_sugar" placeholder="mg/dL">
-          <span class="unit">Fasting normal: 70–99 mg/dL</span>
-        </div>
-      </div>
-
-      <div class="section-divider">Medical History</div>
-      <div class="form-grid full">
-        <div class="field">
-          <label>Known Conditions <span class="tip" title="Any diagnosed illnesses e.g. Diabetes, Hypertension">ⓘ</span></label>
-          <textarea id="f_conditions" placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma..."></textarea>
-        </div>
-        <div class="field">
-          <label>Current Medications <span class="tip" title="Medicines you are currently taking">ⓘ</span></label>
-          <textarea id="f_meds" placeholder="e.g. Metformin 500mg, Amlodipine 5mg..."></textarea>
-        </div>
-        <div class="field">
-          <label>Family / Hereditary Diseases <span class="tip" title="Diseases in your parents, siblings, or grandparents">ⓘ</span></label>
-          <textarea id="f_family" placeholder="e.g. Father — Heart disease; Mother — Diabetes..."></textarea>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn btn-primary" onclick="goTo(2)">Continue to Symptoms →</button>
+    <div class="section-divider">Body Measurements</div>
+    <div class="form-grid three">
+      <div class="field"><label>Height (cm)</label><input type="number" id="f_height" placeholder="cm" oninput="calcBMI()"></div>
+      <div class="field"><label>Weight (kg)</label><input type="number" id="f_weight" placeholder="kg" oninput="calcBMI()"></div>
+      <div class="field"><label>BMI</label>
+        <div class="bmi-display"><span class="bmi-val" id="bmiVal">—</span><div><div class="bmi-category" id="bmiCat">Enter H&W</div><div class="bmi-label">Body Mass Index</div></div></div>
       </div>
     </div>
-  </div>
 
-  <!-- MODULE 2: SYMPTOMS -->
-  <div class="module" id="mod2">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon">🫀</div>
-        <div>
-          <h2>Body Region & Symptoms</h2>
-          <p>Click the body region affected, then select your symptoms</p>
-        </div>
-      </div>
+    <div class="section-divider">Current Vitals</div>
+    <div class="form-grid three">
+      <div class="field"><label>Pulse (bpm) <span class="tip" title="Heart rate">ⓘ</span></label><input type="number" id="f_pulse" placeholder="e.g. 72"><span class="unit">Normal: 60–100</span></div>
+      <div class="field"><label>Blood Pressure <span class="tip" title="Systolic/Diastolic mmHg">ⓘ</span></label><input type="text" id="f_bp" placeholder="e.g. 120/80"><span class="unit">Normal: &lt;120/80 mmHg</span></div>
+      <div class="field"><label>Temperature (°F)</label><input type="number" id="f_temp" placeholder="°F" step="0.1"><span class="unit">Normal: 97–99°F</span></div>
+      <div class="field"><label>Breathing Rate <span class="tip" title="Breaths per minute">ⓘ</span></label><input type="number" id="f_rr" placeholder="/min"><span class="unit">Normal: 12–20</span></div>
+      <div class="field"><label>SpO₂ (%) <span class="tip" title="Pulse oximeter reading">ⓘ</span></label><input type="number" id="f_spo2" placeholder="%" min="70" max="100"><span class="unit">Normal: 95–100%</span></div>
+      <div class="field"><label>Blood Sugar <span class="tip" title="Fasting glucose mg/dL">ⓘ</span></label><input type="number" id="f_sugar" placeholder="mg/dL"><span class="unit">Fasting: 70–99 mg/dL</span></div>
+    </div>
 
-      <div class="body-map-wrap">
-        <div class="body-svg-container">
-          <svg viewBox="0 0 120 280" xmlns="http://www.w3.org/2000/svg">
-            <!-- Head -->
-            <ellipse class="body-region" id="svg_head" cx="60" cy="28" rx="22" ry="25" onclick="selectRegion('head')" title="Head"/>
-            <!-- Neck -->
-            <rect class="body-region" id="svg_throat" x="50" y="52" width="20" height="16" rx="4" onclick="selectRegion('throat')"/>
-            <!-- Chest -->
-            <rect class="body-region" id="svg_chest" x="28" y="68" width="64" height="54" rx="8" onclick="selectRegion('chest')"/>
-            <!-- Abdomen -->
-            <rect class="body-region" id="svg_abdomen" x="30" y="124" width="60" height="44" rx="6" onclick="selectRegion('abdomen')"/>
-            <!-- Pelvis/Urogenital -->
-            <ellipse class="body-region" id="svg_urogenital" cx="60" cy="182" rx="26" ry="16" onclick="selectRegion('urogenital')"/>
-            <!-- Left upper arm -->
-            <rect class="body-region" id="svg_ul1" x="10" y="70" width="16" height="44" rx="6" onclick="selectRegion('limbs')"/>
-            <!-- Left forearm -->
-            <rect class="body-region" id="svg_ul2" x="8" y="118" width="14" height="36" rx="5" onclick="selectRegion('limbs')"/>
-            <!-- Right upper arm -->
-            <rect class="body-region" id="svg_ur1" x="94" y="70" width="16" height="44" rx="6" onclick="selectRegion('limbs')"/>
-            <!-- Right forearm -->
-            <rect class="body-region" id="svg_ur2" x="98" y="118" width="14" height="36" rx="5" onclick="selectRegion('limbs')"/>
-            <!-- Left thigh -->
-            <rect class="body-region" id="svg_ll1" x="30" y="198" width="22" height="42" rx="6" onclick="selectRegion('limbs')"/>
-            <!-- Right thigh -->
-            <rect class="body-region" id="svg_lr1" x="68" y="198" width="22" height="42" rx="6" onclick="selectRegion('limbs')"/>
-            <!-- Left shin -->
-            <rect class="body-region" id="svg_ll2" x="32" y="242" width="18" height="32" rx="5" onclick="selectRegion('limbs')"/>
-            <!-- Right shin -->
-            <rect class="body-region" id="svg_lr2" x="70" y="242" width="18" height="32" rx="5" onclick="selectRegion('limbs')"/>
-            <!-- Back label -->
-            <text x="60" y="275" text-anchor="middle" font-size="7" fill="#8a9fb5" font-family="IBM Plex Sans, sans-serif">Tap region to select</text>
-          </svg>
-        </div>
+    <div class="section-divider">Medical History</div>
+    <div class="form-grid full">
+      <div class="field"><label>Known Conditions</label><textarea id="f_conditions" placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma, Hypothyroidism..."></textarea></div>
+      <div class="field"><label>Current Medications</label><textarea id="f_meds" placeholder="e.g. Metformin 500mg BD, Amlodipine 5mg OD..."></textarea></div>
+      <div class="field"><label>Family / Hereditary Diseases</label><textarea id="f_family" placeholder="e.g. Father — Coronary artery disease; Mother — Type 2 Diabetes..."></textarea></div>
+    </div>
 
-        <div class="symptom-panel">
-          <div class="section-divider" style="margin-top:0">Selected Regions</div>
-          <div class="region-tabs" id="regionTabs">
-            <span style="color:var(--text-muted);font-size:0.82rem">None selected — click on the body diagram</span>
-          </div>
-          <div id="symptomList" class="symptom-checklist"></div>
-          <div class="field">
-            <label>Describe in your own words</label>
-            <textarea id="f_desc" placeholder="Any additional details about your symptoms, when they started, what makes them better or worse..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:20px">
-        <div class="section-divider">Onset Duration</div>
-        <div class="duration-opts" id="durationOpts">
-          <button class="dur-btn" onclick="setDuration(this, 'Today (acute)')">Today</button>
-          <button class="dur-btn" onclick="setDuration(this, '2–7 days')">2–7 Days</button>
-          <button class="dur-btn" onclick="setDuration(this, '1–4 weeks')">1–4 Weeks</button>
-          <button class="dur-btn" onclick="setDuration(this, 'More than 1 month (chronic)')">1+ Month</button>
-        </div>
-      </div>
-
-      <div class="severity-wrap">
-        <label>Severity: <strong id="sevVal">5</strong> / 10</label>
-        <input type="range" id="f_severity" min="1" max="10" value="5" oninput="document.getElementById('sevVal').textContent=this.value">
-        <div class="severity-labels"><span>Mild</span><span>Moderate</span><span>Severe</span></div>
-      </div>
-
-      <div class="actions">
-        <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
-        <button class="btn btn-primary" onclick="goTo(3)">Continue to Documents →</button>
-      </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="goTo(2)">Continue to Symptoms →</button>
     </div>
   </div>
+</div>
 
-  <!-- MODULE 3: DOCUMENTS -->
-  <div class="module" id="mod3">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon">📄</div>
-        <div>
-          <h2>Upload Documents</h2>
-          <p>X-rays, lab reports, prescriptions, or photos — optional but enhances accuracy</p>
-        </div>
-      </div>
-
-      <div class="upload-zone" id="uploadZone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-        <input type="file" id="fileInput" multiple accept=".jpg,.jpeg,.png,.pdf,.gif,.webp" onchange="handleFiles(this.files)">
-        <div class="upload-icon">📁</div>
-        <p><strong>Drag & drop files here</strong> or click to browse</p>
-        <small>Accepts: JPG, PNG, PDF (X-rays, lab reports, prescriptions, wound photos)</small>
-      </div>
-
-      <div class="file-previews" id="filePreviews"></div>
-
-      <div class="actions">
-        <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
-        <button class="btn btn-primary" id="analyseBtn" onclick="runAnalysis()">🔬 Analyse Now →</button>
-      </div>
+<!-- MODULE 2: SYMPTOMS / BODY MAP -->
+<div class="module" id="mod2">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🫀</div>
+      <div><h2>Body Region & Symptoms</h2><p>Click the exact region on the body map, or use the legend below</p></div>
     </div>
-  </div>
 
-  <!-- MODULE 4: RESULTS -->
-  <div class="module" id="mod4">
-    <div class="card" id="resultsCard">
-      <div class="card-header">
-        <div class="card-icon">📋</div>
-        <div>
-          <h2>Clinical Assessment Report</h2>
-          <p id="reportTimestamp"></p>
+    <div class="body-map-wrap">
+      <!-- DETAILED SVG BODY MAP -->
+      <div class="body-svg-outer">
+        <svg viewBox="0 0 130 370" xmlns="http://www.w3.org/2000/svg">
+          <!-- HEAD -->
+          <ellipse class="bregion" id="svgr_head" cx="65" cy="22" rx="20" ry="20" onclick="selR('head')"/>
+          <text class="bregion-label" x="65" y="23" text-anchor="middle">Head</text>
+
+          <!-- FACE / EYES-EARS-NOSE -->
+          <ellipse class="bregion" id="svgr_face" cx="65" cy="30" rx="12" ry="8" onclick="selR('face')" style="fill:rgba(200,230,240,0.6)"/>
+          <text class="bregion-label" x="65" y="31" text-anchor="middle" font-size="4.5">Face/ENT</text>
+
+          <!-- NECK -->
+          <rect class="bregion" id="svgr_neck" x="56" y="41" width="18" height="12" rx="4" onclick="selR('neck')"/>
+          <text class="bregion-label" x="65" y="49" text-anchor="middle">Neck</text>
+
+          <!-- UPPER CHEST -->
+          <rect class="bregion" id="svgr_uchest" x="30" y="53" width="70" height="28" rx="6" onclick="selR('uchest')"/>
+          <text class="bregion-label" x="65" y="68" text-anchor="middle">Upper Chest / Heart</text>
+
+          <!-- LOWER CHEST / LUNGS -->
+          <rect class="bregion" id="svgr_lchest" x="30" y="82" width="70" height="24" rx="5" onclick="selR('lchest')"/>
+          <text class="bregion-label" x="65" y="95" text-anchor="middle">Lower Chest / Lungs</text>
+
+          <!-- UPPER ABDOMEN -->
+          <rect class="bregion" id="svgr_uabd" x="32" y="107" width="66" height="22" rx="5" onclick="selR('uabd')"/>
+          <text class="bregion-label" x="65" y="120" text-anchor="middle">Upper Abdomen / Stomach</text>
+
+          <!-- LOWER ABDOMEN -->
+          <rect class="bregion" id="svgr_labd" x="33" y="130" width="64" height="20" rx="5" onclick="selR('labd')"/>
+          <text class="bregion-label" x="65" y="142" text-anchor="middle">Lower Abdomen / Bowel</text>
+
+          <!-- PELVIS / GROIN -->
+          <ellipse class="bregion" id="svgr_pelvis" cx="65" cy="160" rx="28" ry="13" onclick="selR('pelvis')"/>
+          <text class="bregion-label" x="65" y="161" text-anchor="middle">Pelvis / Groin / Urogenital</text>
+
+          <!-- UPPER BACK -->
+          <rect class="bregion" id="svgr_uback" x="4" y="53" width="22" height="30" rx="5" onclick="selR('uback')"/>
+          <text class="bregion-label" x="15" y="71" text-anchor="middle">Upper</text>
+          <text class="bregion-label" x="15" y="77" text-anchor="middle">Back</text>
+
+          <!-- MID BACK -->
+          <rect class="bregion" id="svgr_mback" x="4" y="85" width="22" height="24" rx="5" onclick="selR('mback')"/>
+          <text class="bregion-label" x="15" y="99" text-anchor="middle">Mid Back</text>
+
+          <!-- LOWER BACK / LUMBAR -->
+          <rect class="bregion" id="svgr_lback" x="4" y="111" width="22" height="24" rx="5" onclick="selR('lback')"/>
+          <text class="bregion-label" x="15" y="121" text-anchor="middle">Lower</text>
+          <text class="bregion-label" x="15" y="127" text-anchor="middle">Back</text>
+
+          <!-- SACRUM / COCCYX -->
+          <rect class="bregion" id="svgr_sacrum" x="4" y="137" width="22" height="16" rx="4" onclick="selR('sacrum')"/>
+          <text class="bregion-label" x="15" y="147" text-anchor="middle">Sacrum</text>
+
+          <!-- LEFT SHOULDER -->
+          <ellipse class="bregion" id="svgr_lshoulder" cx="16" cy="57" rx="10" ry="8" onclick="selR('shoulder')"/>
+          <text class="bregion-label" x="16" y="58" text-anchor="middle" font-size="4.2">L.Shldr</text>
+
+          <!-- RIGHT SHOULDER -->
+          <ellipse class="bregion" id="svgr_rshoulder" cx="114" cy="57" rx="10" ry="8" onclick="selR('shoulder')"/>
+          <text class="bregion-label" x="114" y="58" text-anchor="middle" font-size="4.2">R.Shldr</text>
+
+          <!-- LEFT UPPER ARM -->
+          <rect class="bregion" id="svgr_luarm" x="4" y="65" width="10" height="28" rx="4" onclick="selR('uarm')"/>
+          <text class="bregion-label" x="9" y="81" text-anchor="middle" font-size="4">U.Arm</text>
+
+          <!-- RIGHT UPPER ARM -->
+          <rect class="bregion" id="svgr_ruarm" x="116" y="65" width="10" height="28" rx="4" onclick="selR('uarm')"/>
+          <text class="bregion-label" x="121" y="81" text-anchor="middle" font-size="4">U.Arm</text>
+
+          <!-- LEFT ELBOW -->
+          <ellipse class="bregion" id="svgr_lelbow" cx="9" cy="95" rx="6" ry="5" onclick="selR('elbow')"/>
+          <text class="bregion-label" x="9" y="96" text-anchor="middle" font-size="4">Elbow</text>
+
+          <!-- RIGHT ELBOW -->
+          <ellipse class="bregion" id="svgr_relbow" cx="121" cy="95" rx="6" ry="5" onclick="selR('elbow')"/>
+          <text class="bregion-label" x="121" y="96" text-anchor="middle" font-size="4">Elbow</text>
+
+          <!-- LEFT FOREARM -->
+          <rect class="bregion" id="svgr_lforearm" x="4" y="101" width="10" height="24" rx="4" onclick="selR('forearm')"/>
+          <text class="bregion-label" x="9" y="115" text-anchor="middle" font-size="4">Forearm</text>
+
+          <!-- RIGHT FOREARM -->
+          <rect class="bregion" id="svgr_rforearm" x="116" y="101" width="10" height="24" rx="4" onclick="selR('forearm')"/>
+          <text class="bregion-label" x="121" y="115" text-anchor="middle" font-size="4">Forearm</text>
+
+          <!-- LEFT WRIST / HAND -->
+          <ellipse class="bregion" id="svgr_lhand" cx="9" cy="130" rx="6" ry="7" onclick="selR('hand')"/>
+          <text class="bregion-label" x="9" y="131" text-anchor="middle" font-size="4">Wrist/Hand</text>
+
+          <!-- RIGHT WRIST / HAND -->
+          <ellipse class="bregion" id="svgr_rhand" cx="121" cy="130" rx="6" ry="7" onclick="selR('hand')"/>
+          <text class="bregion-label" x="121" y="131" text-anchor="middle" font-size="4">Wrist/Hand</text>
+
+          <!-- LEFT HIP -->
+          <ellipse class="bregion" id="svgr_lhip" cx="38" cy="178" rx="14" ry="10" onclick="selR('hip')"/>
+          <text class="bregion-label" x="38" y="179" text-anchor="middle">L.Hip</text>
+
+          <!-- RIGHT HIP -->
+          <ellipse class="bregion" id="svgr_rhip" cx="92" cy="178" rx="14" ry="10" onclick="selR('hip')"/>
+          <text class="bregion-label" x="92" y="179" text-anchor="middle">R.Hip</text>
+
+          <!-- LEFT THIGH -->
+          <rect class="bregion" id="svgr_lthigh" x="28" y="188" width="22" height="38" rx="6" onclick="selR('thigh')"/>
+          <text class="bregion-label" x="39" y="209" text-anchor="middle">L.Thigh</text>
+
+          <!-- RIGHT THIGH -->
+          <rect class="bregion" id="svgr_rthigh" x="80" y="188" width="22" height="38" rx="6" onclick="selR('thigh')"/>
+          <text class="bregion-label" x="91" y="209" text-anchor="middle">R.Thigh</text>
+
+          <!-- LEFT KNEE -->
+          <ellipse class="bregion" id="svgr_lknee" cx="39" cy="230" rx="12" ry="8" onclick="selR('knee')"/>
+          <text class="bregion-label" x="39" y="231" text-anchor="middle">L.Knee</text>
+
+          <!-- RIGHT KNEE -->
+          <ellipse class="bregion" id="svgr_rknee" cx="91" cy="230" rx="12" ry="8" onclick="selR('knee')"/>
+          <text class="bregion-label" x="91" y="231" text-anchor="middle">R.Knee</text>
+
+          <!-- LEFT SHIN / CALF -->
+          <rect class="bregion" id="svgr_lshin" x="29" y="239" width="20" height="36" rx="5" onclick="selR('shin')"/>
+          <text class="bregion-label" x="39" y="259" text-anchor="middle">Shin/Calf</text>
+
+          <!-- RIGHT SHIN / CALF -->
+          <rect class="bregion" id="svgr_rshin" x="81" y="239" width="20" height="36" rx="5" onclick="selR('shin')"/>
+          <text class="bregion-label" x="91" y="259" text-anchor="middle">Shin/Calf</text>
+
+          <!-- LEFT ANKLE / FOOT -->
+          <ellipse class="bregion" id="svgr_lfoot" cx="39" cy="281" rx="12" ry="8" onclick="selR('foot')"/>
+          <text class="bregion-label" x="39" y="282" text-anchor="middle">Ankle/Foot</text>
+
+          <!-- RIGHT ANKLE / FOOT -->
+          <ellipse class="bregion" id="svgr_rfoot" cx="91" cy="281" rx="12" ry="8" onclick="selR('foot')"/>
+          <text class="bregion-label" x="91" y="282" text-anchor="middle">Ankle/Foot</text>
+
+          <!-- SKIN (strip) -->
+          <rect class="bregion" id="svgr_skin" x="4" y="295" width="122" height="12" rx="5" onclick="selR('skin')"/>
+          <text class="bregion-label" x="65" y="303" text-anchor="middle">Skin / Hair / Nails (General)</text>
+
+          <!-- GENERAL SYSTEMIC -->
+          <rect class="bregion" id="svgr_general" x="4" y="312" width="122" height="14" rx="5" onclick="selR('general')"/>
+          <text class="bregion-label" x="65" y="321" text-anchor="middle">General / Systemic / Fatigue</text>
+
+          <text x="65" y="340" text-anchor="middle" font-size="5.2" fill="#8a9fb5" font-family="IBM Plex Sans,sans-serif">← Tap any region to select →</text>
+          <text x="65" y="350" text-anchor="middle" font-size="5" fill="#8a9fb5" font-family="IBM Plex Sans,sans-serif">Left panel = Back regions</text>
+        </svg>
+
+        <!-- Legend for back regions -->
+        <div style="font-size:0.68rem;color:var(--text-muted);text-align:center;margin-top:6px;line-height:1.5">
+          Back regions (upper/mid/lower back, sacrum) shown on left side of diagram
         </div>
       </div>
 
-      <div id="emergencyBanner" style="display:none"></div>
-
-      <div class="patient-summary-card" id="patientSummary"></div>
-
-      <div id="resultsBody"></div>
-
-      <div class="disclaimer">
-        ⚕️ <strong>Important Disclaimer:</strong> MediScan AI is a clinical decision-support tool powered by artificial intelligence. This assessment is for <strong>informational purposes only</strong> and does not constitute a medical diagnosis. The suggested medications and investigations are general guidance only. <strong>Always consult a qualified, licensed physician</strong> to confirm any diagnosis and before commencing any treatment. In case of emergency, call your local emergency number immediately.
-      </div>
-
-      <div class="actions" style="flex-wrap:wrap">
-        <button class="btn btn-secondary" onclick="downloadReport()">⬇ Download Report</button>
-        <button class="btn btn-navy" onclick="resetApp()">+ New Assessment</button>
-      </div>
-
-      <!-- Follow-up Chat -->
-      <div class="chat-wrap">
-        <h3>🗨 Ask a Follow-up Question</h3>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-row">
-          <input type="text" id="chatInput" placeholder="e.g. Is this medication safe for a diabetic?" onkeydown="if(event.key==='Enter')sendChat()">
-          <button class="btn btn-primary" onclick="sendChat()">Send →</button>
+      <!-- SYMPTOM PANEL -->
+      <div class="symptom-panel">
+        <div class="section-divider" style="margin-top:0">Selected Regions</div>
+        <div class="region-tags" id="regionTags">
+          <span style="color:var(--text-muted);font-size:0.8rem">None — tap the body diagram</span>
+        </div>
+        <div class="symptom-grid" id="symptomGrid"></div>
+        <div class="field">
+          <label>Describe symptoms in your own words</label>
+          <textarea id="f_desc" placeholder="When did it start, what makes it better or worse, any associated symptoms..."></textarea>
         </div>
       </div>
     </div>
+
+    <div style="margin-top:18px">
+      <div class="section-divider">Onset Duration</div>
+      <div class="dur-opts" id="durOpts">
+        <button class="dur-btn" onclick="setDur(this,'Today (acute onset)')">Today</button>
+        <button class="dur-btn" onclick="setDur(this,'2–7 days')">2–7 Days</button>
+        <button class="dur-btn" onclick="setDur(this,'1–4 weeks (subacute)')">1–4 Weeks</button>
+        <button class="dur-btn" onclick="setDur(this,'1–3 months')">1–3 Months</button>
+        <button class="dur-btn" onclick="setDur(this,'More than 3 months (chronic)')">3+ Months</button>
+      </div>
+    </div>
+
+    <div class="sev-wrap">
+      <label>Severity: <strong id="sevVal">5</strong> / 10</label>
+      <input type="range" id="f_severity" min="1" max="10" value="5" oninput="document.getElementById('sevVal').textContent=this.value">
+      <div class="sev-labels"><span>1 — Mild</span><span>5 — Moderate</span><span>10 — Severe</span></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goTo(3)">Continue to Sleep & Diet →</button>
+    </div>
   </div>
+</div>
+
+<!-- MODULE 3: SLEEP & DIET -->
+<div class="module" id="mod3">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">😴</div>
+      <div><h2>Sleep Health</h2><p>Sleep quality affects nearly every organ system — provide as much detail as you can</p></div>
+    </div>
+
+    <div class="section-divider">Sleep Pattern</div>
+    <div class="sleep-grid">
+      <div class="sleep-opt-group">
+        <label>Avg hours of sleep/night</label>
+        <div class="opt-chips" id="sl_hours">
+          <button class="opt-chip" onclick="selSleep(this,'sl_hours','Less than 4 hrs')">< 4 hrs</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_hours','4–5 hrs')">4–5 hrs</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_hours','5–6 hrs')">5–6 hrs</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_hours','6–7 hrs')">6–7 hrs</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_hours','7–8 hrs (ideal)')">7–8 hrs</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_hours','More than 9 hrs')">9+ hrs</button>
+        </div>
+      </div>
+      <div class="sleep-opt-group">
+        <label>Sleep quality</label>
+        <div class="opt-chips" id="sl_quality">
+          <button class="opt-chip" onclick="selSleep(this,'sl_quality','Very poor')">Very poor</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_quality','Poor')">Poor</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_quality','Fair')">Fair</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_quality','Good')">Good</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_quality','Excellent')">Excellent</button>
+        </div>
+      </div>
+      <div class="sleep-opt-group">
+        <label>Usual sleep time</label>
+        <div class="opt-chips" id="sl_time">
+          <button class="opt-chip" onclick="selSleep(this,'sl_time','Before 9 PM')">Before 9 PM</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_time','9 PM–11 PM')">9–11 PM</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_time','11 PM–1 AM')">11 PM–1 AM</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_time','After 1 AM')">After 1 AM</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider">Sleep Disturbances (select all that apply)</div>
+    <div class="diet-checks" id="sl_disturbances">
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Difficulty falling asleep (Insomnia)')">😩 Can't fall asleep</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Waking up frequently at night')">🌙 Frequent waking</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Waking early and unable to return to sleep')">🌅 Early waking</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Loud snoring')">😤 Snoring loudly</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Witnessed apnoea (breathing stops during sleep)')">⏸️ Breath stops (told by partner)</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Excessive daytime sleepiness')">😪 Daytime sleepiness</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Restless legs / crawling sensation')">🦵 Restless legs</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Nightmares / vivid dreams')">👻 Nightmares</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Sleepwalking')">🚶 Sleepwalking</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Teeth grinding (bruxism)')">😬 Teeth grinding</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Needing to urinate at night (nocturia)')">🚽 Nocturia</div>
+      <div class="diet-chip" onclick="togMulti(this,'sl_dist','Anxiety or racing thoughts at bedtime')">💭 Racing thoughts</div>
+    </div>
+
+    <div class="section-divider">Morning & Daytime State</div>
+    <div class="sleep-grid">
+      <div class="sleep-opt-group">
+        <label>How do you feel on waking?</label>
+        <div class="opt-chips" id="sl_wakeup">
+          <button class="opt-chip" onclick="selSleep(this,'sl_wakeup','Refreshed and energetic')">Refreshed</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_wakeup','Slightly groggy')">Slightly groggy</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_wakeup','Tired, headache')">Tired/Headache</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_wakeup','Exhausted')">Exhausted</button>
+        </div>
+      </div>
+      <div class="sleep-opt-group">
+        <label>Screen use before bed?</label>
+        <div class="opt-chips" id="sl_screen">
+          <button class="opt-chip" onclick="selSleep(this,'sl_screen','No screen 1+ hr before bed')">None 1hr+</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_screen','Screen 30–60 min before bed')">30–60 min</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_screen','Screen until sleep')">Until sleep</button>
+        </div>
+      </div>
+      <div class="sleep-opt-group">
+        <label>Caffeine / Alcohol</label>
+        <div class="opt-chips" id="sl_caffeine">
+          <button class="opt-chip" onclick="selSleep(this,'sl_caffeine','No caffeine/alcohol')">Neither</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_caffeine','Caffeine after 2 PM')">Late caffeine</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_caffeine','Alcohol near bedtime')">Alcohol at night</button>
+          <button class="opt-chip" onclick="selSleep(this,'sl_caffeine','Both caffeine and alcohol')">Both</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider">Additional Sleep Notes</div>
+    <div class="field"><textarea id="f_sleep_notes" placeholder="Any other sleep concerns, sleeping pill use, diagnosed sleep disorders (e.g. sleep apnoea), recent changes to sleep..."></textarea></div>
+  </div>
+
+  <div class="card" style="animation-delay:0.1s">
+    <div class="card-header">
+      <div class="card-icon">🥗</div>
+      <div><h2>Dietary Profile</h2><p>Helps generate personalised nutrition recommendations</p></div>
+    </div>
+
+    <div class="section-divider">Diet Type</div>
+    <div class="opt-chips" id="diet_type" style="margin-bottom:16px">
+      <button class="opt-chip" onclick="selSleep(this,'diet_type','Omnivore (eats everything)')">Omnivore</button>
+      <button class="opt-chip" onclick="selSleep(this,'diet_type','Vegetarian (no meat/fish)')">Vegetarian</button>
+      <button class="opt-chip" onclick="selSleep(this,'diet_type','Vegan (no animal products)')">Vegan</button>
+      <button class="opt-chip" onclick="selSleep(this,'diet_type','Pescatarian (fish only)')">Pescatarian</button>
+      <button class="opt-chip" onclick="selSleep(this,'diet_type','Keto / Low-carb')">Keto</button>
+      <button class="opt-chip" onclick="selSleep(this,'diet_type','Intermittent fasting')">Intermittent fasting</button>
+    </div>
+
+    <div class="section-divider">Dietary Concerns (select all applicable)</div>
+    <div class="diet-checks" id="diet_concerns">
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Excessive salt/sodium intake')">🧂 High salt</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Excessive sugar / sweets')">🍬 High sugar</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Frequent processed / junk food')">🍟 Processed food</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Low fruit & vegetable intake')">🥦 Low veg/fruit</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Low fibre intake')">🌾 Low fibre</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Low protein intake')">🥩 Low protein</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Skipping meals regularly')">⏰ Meal skipping</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Excessive fried food')">🍳 Fried food heavy</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Late night eating (after 9 PM)')">🌙 Late night eating</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Low water intake (< 1.5 L/day)')">💧 Low hydration</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Food allergies or intolerances')">⚠️ Food allergies</div>
+      <div class="diet-chip" onclick="togMulti(this,'diet_conc','Alcohol consumption')">🍺 Alcohol</div>
+    </div>
+
+    <div class="section-divider">Appetite & Eating Habits</div>
+    <div class="sleep-grid">
+      <div class="sleep-opt-group">
+        <label>Meals per day</label>
+        <div class="opt-chips" id="diet_meals">
+          <button class="opt-chip" onclick="selSleep(this,'diet_meals','1 meal/day')">1</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_meals','2 meals/day')">2</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_meals','3 meals/day')">3</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_meals','3 meals + snacks')">3 + snacks</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_meals','Irregular / grazing')">Irregular</button>
+        </div>
+      </div>
+      <div class="sleep-opt-group">
+        <label>Physical activity level</label>
+        <div class="opt-chips" id="diet_activity">
+          <button class="opt-chip" onclick="selSleep(this,'diet_activity','Sedentary (desk job, no exercise)')">Sedentary</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_activity','Light (walking, light work)')">Light</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_activity','Moderate (3–4x/week exercise)')">Moderate</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_activity','Active (daily exercise)')">Active</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_activity','Very active (athlete/manual labour)')">Very active</button>
+        </div>
+      </div>
+      <div class="sleep-opt-group">
+        <label>Current weight goal</label>
+        <div class="opt-chips" id="diet_goal">
+          <button class="opt-chip" onclick="selSleep(this,'diet_goal','Lose weight')">Lose weight</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_goal','Gain weight / muscle')">Gain weight</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_goal','Maintain current weight')">Maintain</button>
+          <button class="opt-chip" onclick="selSleep(this,'diet_goal','Manage a health condition through diet')">Manage condition</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider">Dietary Notes</div>
+    <div class="field"><textarea id="f_diet_notes" placeholder="Any allergies, food intolerances, cultural/religious restrictions, supplement use, eating disorder history..."></textarea></div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+      <button class="btn btn-primary" onclick="goTo(4)">Continue to Documents →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODULE 4: DOCUMENTS -->
+<div class="module" id="mod4">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">📄</div>
+      <div><h2>Upload Documents</h2><p>X-rays, lab reports, prescriptions, wound photos — optional but improves accuracy</p></div>
+    </div>
+    <div class="upload-zone" id="uploadZone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+      <input type="file" id="fileInput" multiple accept=".jpg,.jpeg,.png,.pdf,.gif,.webp" onchange="handleFiles(this.files)">
+      <div class="upload-icon">📁</div>
+      <p><strong>Drag & drop or click to browse</strong></p>
+      <small>JPG · PNG · PDF — X-rays, lab reports, prescriptions, photos</small>
+    </div>
+    <div class="file-previews" id="filePreviews"></div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
+      <button class="btn btn-primary" onclick="runAnalysis()">🔬 Analyse Now →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODULE 5: RESULTS -->
+<div class="module" id="mod5">
+  <div class="card" id="resultsCard">
+    <div class="card-header">
+      <div class="card-icon">📋</div>
+      <div><h2>Clinical Assessment Report</h2><p id="reportTimestamp"></p></div>
+    </div>
+    <div id="emergencyBanner"></div>
+    <div class="patient-summary-card" id="patientSummary"></div>
+    <div id="resultsBody"></div>
+    <div class="disclaimer">
+      ⚕️ <strong>Important Disclaimer:</strong> MediScan AI is a clinical decision-support tool. This assessment is for <strong>informational purposes only</strong> and does not constitute a medical diagnosis. The medications and investigations listed are general guidance. <strong>Always consult a qualified, licensed physician</strong> before commencing any treatment. In emergencies, call your local emergency services immediately.
+    </div>
+    <div class="actions" style="flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="downloadReport()">⬇ Download Report</button>
+      <button class="btn btn-navy" onclick="saveRecord()">💾 Save Record</button>
+      <button class="btn btn-primary" onclick="resetApp()">+ New Assessment</button>
+    </div>
+    <div class="chat-wrap">
+      <h3>🗨 Ask a Follow-up Question</h3>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="e.g. Is this safe for a diabetic? What foods should I avoid?" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn btn-primary" onclick="sendChat()">Send →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </main>
 
-<!-- Loader -->
+<!-- LOADER -->
 <div class="loader-overlay" id="loader">
   <div class="loader-ring"></div>
   <div class="loader-text">Analysing your health data…</div>
   <div class="loader-sub" id="loaderSub">Running clinical assessment engine</div>
 </div>
 
+<!-- RECORDS MODAL -->
+<div class="modal-overlay" id="recordsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeRecords()">✕</button>
+    <h2>📂 Saved Records</h2>
+    <div id="recordsList"></div>
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeRecords()">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─── STATE ───
-const state = {
-  sex: 'Male',
-  selectedRegions: new Set(),
-  selectedSymptoms: new Set(),
-  duration: '',
-  uploadedFiles: [],
-  diagnosisContext: '',
-  chatHistory: []
+const S = {
+  sex:'Male', selectedRegions:new Set(), selectedSymptoms:new Set(),
+  duration:'', uploadedFiles:[], diagnosisContext:'', chatHistory:[],
+  sleepData:{}, dietData:{}, multiSel:{}
 };
 
-const API_URL = 'https://api.anthropic.com/v1/messages';
+const API_URL='https://api.anthropic.com/v1/messages';
 
-const SYMPTOM_MAP = {
-  head: ['Headache','Dizziness / Vertigo','Confusion / Brain fog','Memory issues','Vision changes','Hearing loss / Tinnitus','Facial pain','Scalp tenderness','Neck stiffness','Fainting'],
-  throat: ['Sore throat','Difficulty swallowing','Hoarseness','Swollen glands','Throat pain','Ear pain','Runny nose','Blocked nose','Post-nasal drip','Mouth ulcers'],
-  chest: ['Chest pain / Tightness','Shortness of breath','Palpitations / Irregular heartbeat','Cough (dry)','Cough (productive)','Wheezing','Haemoptysis (blood in sputum)','Chest heaviness','Night sweats','Fever'],
-  abdomen: ['Abdominal pain','Nausea','Vomiting','Diarrhoea','Constipation','Bloating','Heartburn / Reflux','Blood in stool','Loss of appetite','Jaundice (yellow skin/eyes)'],
-  back: ['Lower back pain','Upper back pain','Radiating leg pain','Stiffness','Muscle spasms','Pain on movement','Numbness / Tingling in legs'],
-  limbs: ['Joint pain','Swelling','Muscle weakness','Numbness / Tingling','Cramps','Limited range of motion','Varicose veins','Cold extremities'],
-  urogenital: ['Frequent urination','Painful urination','Blood in urine','Pelvic pain','Discharge','Irregular periods','Erectile dysfunction','Groin pain','Kidney / Flank pain'],
-  skin: ['Rash','Itching','Hives','Blistering','Discoloration','Swelling','Wound / Ulcer','Hair loss','Nail changes'],
-  general: ['Fatigue / Exhaustion','Weight loss (unintentional)','Weight gain','Fever / Chills','Night sweats','Generalised weakness','Loss of appetite','Swollen lymph nodes','Anaemia symptoms']
+// ─── SYMPTOM MAP (granular) ───
+const SMAP = {
+  head:['Headache (frontal)','Headache (temporal/sides)','Headache (occipital/back of head)','Migraine with aura','Dizziness / Vertigo','Fainting / Syncope','Memory problems','Confusion / Brain fog','Seizures / Fits','Head injury'],
+  face:['Eye pain / Redness','Vision blurring','Double vision','Ear pain / Earache','Hearing loss','Tinnitus (ringing in ears)','Nasal congestion','Runny nose','Nosebleed','Sore throat','Difficulty swallowing','Mouth ulcers','Jaw pain','Toothache'],
+  neck:['Neck pain / Stiffness','Swollen lymph nodes in neck','Thyroid swelling / Goitre','Difficulty turning head','Neck pain radiating to arm'],
+  uchest:['Chest pain (central / crushing)','Chest pain (sharp, pleuritic)','Chest tightness','Palpitations / Racing heart','Irregular heartbeat','Chest pain on exertion','Chest pain radiating to arm/jaw','Heart fluttering'],
+  lchest:['Shortness of breath at rest','Shortness of breath on exertion','Cough (dry)','Cough (with phlegm)','Coughing blood','Wheezing','Breathlessness lying flat','Pleuritic (side) chest pain'],
+  uabd:['Upper abdominal pain','Pain under right rib (liver/gallbladder)','Pain under left rib (spleen/stomach)','Heartburn / Acid reflux','Nausea','Vomiting','Vomiting blood','Jaundice (yellow eyes/skin)','Loss of appetite','Hiccups'],
+  labd:['Lower abdominal cramps','Bloating / Distension','Diarrhoea','Constipation','Blood in stool (red)','Dark/tarry stool','Mucus in stool','Alternating diarrhoea/constipation','Bowel habit change'],
+  pelvis:['Pelvic pain','Groin pain','Frequent urination','Painful urination','Blood in urine','Urinary incontinence','Difficulty urinating','Vaginal discharge','Irregular periods','Painful periods','Erectile dysfunction','Testicular pain','Kidney / Flank pain'],
+  uback:['Upper back pain','Pain between shoulder blades','Stiffness in thoracic spine','Upper back pain worse on breathing'],
+  mback:['Mid back pain','Pain around kidneys','Back pain radiating to sides','Stiffness mid-spine'],
+  lback:['Lower back pain (lumbar)','Sciatica — pain down leg','Lower back stiffness','Pain worse on standing/sitting','Lower back pain after lifting','Disc-related shooting pain','Lower back pain at night'],
+  sacrum:['Sacral / tailbone pain','Coccyx pain (pain at base of spine)','Sacroiliac joint pain','Pain sitting on hard surface'],
+  shoulder:['Shoulder pain','Frozen shoulder','Shoulder pain lifting arm','Shoulder clicking','Shoulder weakness'],
+  uarm:['Upper arm pain','Muscle weakness in arms','Bruising / swelling upper arm'],
+  elbow:['Elbow pain','Tennis elbow (outer)','Golfer\'s elbow (inner)','Elbow swelling','Limited elbow movement'],
+  forearm:['Forearm pain','Forearm numbness / tingling','Muscle cramps in forearm'],
+  hand:['Wrist pain','Wrist swelling','Hand numbness / tingling','Carpal tunnel symptoms','Finger joint pain','Morning hand stiffness','Trigger finger'],
+  hip:['Hip pain','Groin / hip pain walking','Hip stiffness morning','Pain radiating from hip to thigh','Hip clicking'],
+  thigh:['Thigh pain','Muscle cramp in thigh','Thigh numbness / tingling','Deep vein pain in thigh'],
+  knee:['Knee pain','Knee swelling','Knee locking / giving way','Pain going up/down stairs','Knee clicking / crepitus','Morning knee stiffness'],
+  shin:['Shin pain','Calf cramp','Calf swelling / redness','Shin splints','Restless legs'],
+  foot:['Ankle pain','Ankle swelling','Foot pain (heel)','Plantar fasciitis','Foot numbness','Gout (big toe pain)','Cold feet'],
+  skin:['Rash','Itching (localised)','Itching (generalised)','Hives / Urticaria','Blistering','Skin discolouration','Skin thickening / scaling','Wound not healing','Hair loss','Nail changes','Excessive sweating','Dry skin'],
+  general:['Fatigue / Exhaustion','Generalised weakness','Unexplained weight loss','Weight gain','Fever / Chills','Night sweats','Swollen lymph nodes (general)','Loss of appetite','Frequent infections','Heat/cold intolerance','Polydipsia (excessive thirst)','Polyuria (excessive urination)']
 };
 
-const REGION_LABELS = {
-  head:'Head & Neurological', throat:'ENT (Ear/Nose/Throat)',
-  chest:'Chest & Cardiac', abdomen:'Abdomen & GI',
-  back:'Back & Spine', limbs:'Limbs & Joints',
-  urogenital:'Urogenital & Pelvic', skin:'Skin',
-  general:'General / Systemic'
+const RLABELS = {
+  head:'Head / Neurological', face:'Face / Eyes / Ears / Nose / Throat',
+  neck:'Neck / Thyroid', uchest:'Upper Chest / Heart',
+  lchest:'Lower Chest / Lungs', uabd:'Upper Abdomen',
+  labd:'Lower Abdomen / Bowel', pelvis:'Pelvis / Urogenital',
+  uback:'Upper Back', mback:'Mid Back', lback:'Lower Back / Lumbar',
+  sacrum:'Sacrum / Coccyx', shoulder:'Shoulder',
+  uarm:'Upper Arm', elbow:'Elbow', forearm:'Forearm',
+  hand:'Wrist / Hand', hip:'Hip', thigh:'Thigh',
+  knee:'Knee', shin:'Shin / Calf', foot:'Ankle / Foot',
+  skin:'Skin / Hair / Nails', general:'General / Systemic'
 };
 
-const SVG_REGION_MAP = { head:'head', throat:'throat', chest:'chest', abdomen:'abdomen', urogenital:'urogenital', limbs:'limbs' };
+// ─── NAV ───
+function startAssessment(){ document.getElementById('modWelcome').classList.remove('active'); document.getElementById('progressBar').style.display='flex'; goTo(1); }
 
-// ─── NAVIGATION ───
-function startAssessment() {
-  document.getElementById('modWelcome').classList.remove('active');
-  document.getElementById('progressBar').style.display = 'flex';
-  goTo(1);
-}
-
-function goTo(n) {
-  [1,2,3,4].forEach(i => {
-    document.getElementById('mod'+i).classList.remove('active');
-    document.getElementById('pill'+i)?.classList.remove('active','done');
-  });
+function goTo(n){
+  [1,2,3,4,5].forEach(i=>{ document.getElementById('mod'+i).classList.remove('active'); const p=document.getElementById('pill'+i); if(p){p.classList.remove('active','done');} });
   document.getElementById('mod'+n).classList.add('active');
-  const pill = document.getElementById('pill'+n);
-  if(pill) pill.classList.add('active');
-  for(let i=1;i<n;i++) document.getElementById('pill'+i)?.classList.add('done');
-  window.scrollTo({top:0, behavior:'smooth'});
+  const pill=document.getElementById('pill'+n); if(pill)pill.classList.add('active');
+  for(let i=1;i<n;i++){const p=document.getElementById('pill'+i); if(p)p.classList.add('done');}
+  window.scrollTo({top:0,behavior:'smooth'});
   if(n===2) renderSymptoms();
 }
 
-// ─── VITALS ───
-let selectedSex = 'Male';
-function setSex(s) {
-  selectedSex = s;
-  ['Male','Female','Other'].forEach(x => document.getElementById('sex_'+x.toLowerCase()).classList.remove('active'));
-  document.getElementById('sex_'+s.toLowerCase()).classList.add('active');
-}
+// ─── SEX ───
+let selectedSex='Male';
+function setSex(s){ selectedSex=s; ['male','female','other'].forEach(x=>document.getElementById('sex_'+x).classList.remove('active')); document.getElementById('sex_'+s.toLowerCase()).classList.add('active'); }
 
-function calcBMI() {
-  const h = parseFloat(document.getElementById('f_height').value);
-  const w = parseFloat(document.getElementById('f_weight').value);
-  const valEl = document.getElementById('bmiVal');
-  const catEl = document.getElementById('bmiCat');
-  if(h>0 && w>0) {
-    const bmi = (w / ((h/100)**2)).toFixed(1);
-    valEl.textContent = bmi;
-    const b = parseFloat(bmi);
-    catEl.textContent = b<18.5 ? 'Underweight' : b<25 ? 'Normal Weight' : b<30 ? 'Overweight' : 'Obese';
-    catEl.style.color = b<18.5||b>=30 ? '#e05252' : b<25 ? '#00a896' : '#f0a500';
-  } else {
-    valEl.textContent = '—';
-    catEl.textContent = 'Enter height & weight';
-    catEl.style.color = '';
-  }
+// ─── BMI ───
+function calcBMI(){
+  const h=parseFloat(document.getElementById('f_height').value), w=parseFloat(document.getElementById('f_weight').value);
+  const v=document.getElementById('bmiVal'), c=document.getElementById('bmiCat');
+  if(h>0&&w>0){ const b=(w/((h/100)**2)).toFixed(1); v.textContent=b; const bn=parseFloat(b); c.textContent=bn<18.5?'Underweight':bn<25?'Normal':bn<30?'Overweight':'Obese'; c.style.color=bn<18.5||bn>=30?'#e05252':bn<25?'#00a896':'#f0a500'; }
+  else{ v.textContent='—'; c.textContent='Enter H & W'; c.style.color=''; }
 }
 
 // ─── BODY MAP ───
-function selectRegion(region) {
-  if(state.selectedRegions.has(region)) {
-    state.selectedRegions.delete(region);
-  } else {
-    state.selectedRegions.add(region);
-  }
-  updateSVGHighlight();
-  renderRegionTabs();
-  renderSymptoms();
+function selR(r){
+  if(S.selectedRegions.has(r)) S.selectedRegions.delete(r);
+  else S.selectedRegions.add(r);
+  updateSVGsel(); renderTags(); renderSymptoms();
 }
 
-function updateSVGHighlight() {
-  document.querySelectorAll('.body-region').forEach(el => el.classList.remove('selected'));
-  state.selectedRegions.forEach(r => {
-    document.querySelectorAll(`[onclick*="selectRegion('${r}')"]`).forEach(el => el.classList.add('selected'));
+function updateSVGsel(){
+  document.querySelectorAll('.bregion').forEach(el=>el.classList.remove('sel'));
+  S.selectedRegions.forEach(r=>{
+    document.querySelectorAll(`[onclick*="selR('${r}')"]`).forEach(el=>el.classList.add('sel'));
   });
 }
 
-function renderRegionTabs() {
-  const tabs = document.getElementById('regionTabs');
-  if(state.selectedRegions.size===0) {
-    tabs.innerHTML = '<span style="color:var(--text-muted);font-size:0.82rem">None selected — click on the body diagram</span>';
-    return;
-  }
-  tabs.innerHTML = '';
-  // Add General always available
-  const allRegions = ['general','skin',...state.selectedRegions];
-  const unique = [...new Set(allRegions)];
-  unique.forEach(r => {
-    const tag = document.createElement('span');
-    tag.className = 'region-tag active';
-    tag.textContent = REGION_LABELS[r] || r;
-    tag.onclick = () => {};
-    tabs.appendChild(tag);
+function renderTags(){
+  const t=document.getElementById('regionTags');
+  if(S.selectedRegions.size===0){ t.innerHTML='<span style="color:var(--text-muted);font-size:0.8rem">None — tap the body diagram</span>'; return; }
+  t.innerHTML='';
+  S.selectedRegions.forEach(r=>{
+    const tag=document.createElement('span');
+    tag.className='rtag active';
+    tag.innerHTML=`${RLABELS[r]||r} <span class="rtag-x" onclick="selR('${r}')">✕</span>`;
+    t.appendChild(tag);
   });
-  const gen = document.createElement('span');
-  gen.className = 'region-tag';
-  gen.textContent = '+ Add Region';
-  gen.style.cursor = 'pointer';
-  gen.onclick = () => {
-    const keys = Object.keys(SYMPTOM_MAP).filter(k=>!state.selectedRegions.has(k));
-    if(keys.length===0) return;
-    const r = prompt('Add region (type one):\n'+keys.map(k=>REGION_LABELS[k]).join(', '));
-    if(r) {
-      const found = Object.keys(REGION_LABELS).find(k=>REGION_LABELS[k].toLowerCase()===r.toLowerCase());
-      if(found) { state.selectedRegions.add(found); updateSVGHighlight(); renderRegionTabs(); renderSymptoms(); }
-    }
-  };
-  tabs.appendChild(gen);
 }
 
-function renderSymptoms() {
-  const list = document.getElementById('symptomList');
-  const allRegions = [...new Set(['general','skin',...state.selectedRegions])];
-  const allSymptoms = [...new Set(allRegions.flatMap(r=>SYMPTOM_MAP[r]||[]))].sort();
-  if(allSymptoms.length===0) {
-    list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;grid-column:1/-1">Select a body region to see relevant symptoms</p>';
-    return;
-  }
-  list.innerHTML = allSymptoms.map(s => `
-    <div class="symptom-check ${state.selectedSymptoms.has(s)?'checked':''}" onclick="toggleSymptom('${s.replace(/'/g,"\\'")}', this)">
-      <div class="chk-box">${state.selectedSymptoms.has(s)?'✓':''}</div>
-      ${s}
-    </div>
-  `).join('');
+function renderSymptoms(){
+  const grid=document.getElementById('symptomGrid');
+  const all=[...new Set([...[...S.selectedRegions].flatMap(r=>SMAP[r]||[]),'...and General','Fatigue / Exhaustion','Fever / Chills','Night sweats','Unexplained weight loss','Swollen lymph nodes (general)'])].filter(s=>s!=='...and General');
+  const syms=[...new Set([...[...S.selectedRegions].flatMap(r=>SMAP[r]||[]), ...SMAP.general])];
+  if(syms.length===0){ grid.innerHTML='<p style="color:var(--text-muted);font-size:0.82rem;grid-column:1/-1">Select a region to see symptoms</p>'; return; }
+  grid.innerHTML=syms.map(s=>`
+    <div class="sym-chip ${S.selectedSymptoms.has(s)?'on':''}" onclick="togSym(this,'${s.replace(/'/g,"\\'").replace(/"/g,"&quot;")}')">
+      <div class="chkbox">${S.selectedSymptoms.has(s)?'✓':''}</div>${s}
+    </div>`).join('');
 }
 
-function toggleSymptom(s, el) {
-  if(state.selectedSymptoms.has(s)) {
-    state.selectedSymptoms.delete(s);
-    el.classList.remove('checked');
-    el.querySelector('.chk-box').textContent = '';
-  } else {
-    state.selectedSymptoms.add(s);
-    el.classList.add('checked');
-    el.querySelector('.chk-box').textContent = '✓';
-  }
+function togSym(el,s){
+  if(S.selectedSymptoms.has(s)){S.selectedSymptoms.delete(s);el.classList.remove('on');el.querySelector('.chkbox').textContent='';}
+  else{S.selectedSymptoms.add(s);el.classList.add('on');el.querySelector('.chkbox').textContent='✓';}
 }
 
-let selectedDuration = '';
-function setDuration(btn, val) {
-  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  selectedDuration = val;
+// ─── DURATION ───
+let selectedDur='';
+function setDur(btn,v){ document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); selectedDur=v; }
+
+// ─── SLEEP & DIET SELECTORS ───
+function selSleep(btn,group,val){
+  document.querySelectorAll(`#${group} .opt-chip`).forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); S.sleepData[group]=val;
+}
+function togMulti(el,key,val){
+  if(!S.multiSel[key]) S.multiSel[key]=new Set();
+  if(S.multiSel[key].has(val)){ S.multiSel[key].delete(val); el.classList.remove('on'); }
+  else{ S.multiSel[key].add(val); el.classList.add('on'); }
 }
 
 // ─── FILE UPLOAD ───
-function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('dragover'); }
-function handleDragLeave(e) { document.getElementById('uploadZone').classList.remove('dragover'); }
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('uploadZone').classList.remove('dragover');
-  handleFiles(e.dataTransfer.files);
-}
-
-function handleFiles(files) {
-  [...files].forEach(file => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const data = { name: file.name, type: file.type, base64: e.target.result.split(',')[1], label: 'Photo', text: '' };
-      if(file.type === 'application/pdf') {
-        data.text = await extractPDFText(e.target.result);
-      }
-      state.uploadedFiles.push(data);
-      renderFilePreviews();
+function handleDragOver(e){e.preventDefault();document.getElementById('uploadZone').classList.add('dragover');}
+function handleDragLeave(){document.getElementById('uploadZone').classList.remove('dragover');}
+function handleDrop(e){e.preventDefault();document.getElementById('uploadZone').classList.remove('dragover');handleFiles(e.dataTransfer.files);}
+function handleFiles(files){
+  [...files].forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=async(e)=>{
+      const d={name:file.name,type:file.type,base64:e.target.result.split(',')[1],label:'Photo',text:''};
+      if(file.type==='application/pdf') d.text=await extractPDFText(e.target.result);
+      S.uploadedFiles.push(d); renderPreviews();
     };
     reader.readAsDataURL(file);
   });
 }
-
-async function extractPDFText(dataUrl) {
-  try {
-    if(typeof pdfjsLib === 'undefined') return '[PDF text extraction unavailable]';
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    const pdf = await pdfjsLib.getDocument(dataUrl).promise;
-    let text = '';
-    for(let i=1;i<=Math.min(pdf.numPages,10);i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map(it=>it.str).join(' ') + '\n';
-    }
+async function extractPDFText(dataUrl){
+  try{
+    if(typeof pdfjsLib==='undefined') return '[PDF.js not loaded]';
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf=await pdfjsLib.getDocument(dataUrl).promise;
+    let text='';
+    for(let i=1;i<=Math.min(pdf.numPages,10);i++){ const p=await pdf.getPage(i); const c=await p.getTextContent(); text+=c.items.map(it=>it.str).join(' ')+'\n'; }
     return text;
-  } catch(err) { return '[Could not extract PDF text]'; }
+  }catch(e){return '[Could not extract PDF text]';}
 }
-
-function renderFilePreviews() {
-  const previews = document.getElementById('filePreviews');
-  previews.innerHTML = state.uploadedFiles.map((f,i) => `
-    <div class="file-preview-card">
-      <button class="remove-file" onclick="removeFile(${i})">✕</button>
-      ${f.type.startsWith('image/') ? `<img src="data:${f.type};base64,${f.base64}" alt="${f.name}">` : '<div style="font-size:2rem;text-align:center;padding:10px">📄</div>'}
-      <div class="file-name">${f.name}</div>
-      <select onchange="state.uploadedFiles[${i}].label=this.value">
-        <option value="Photo">📷 Photo</option>
-        <option value="X-ray">🩻 X-ray / Scan</option>
-        <option value="Lab Report">🧪 Lab Report</option>
-        <option value="Prescription">💊 Prescription</option>
-        <option value="Other">📎 Other</option>
+function renderPreviews(){
+  document.getElementById('filePreviews').innerHTML=S.uploadedFiles.map((f,i)=>`
+    <div class="fp-card">
+      <button class="rm-file" onclick="removeFile(${i})">✕</button>
+      ${f.type.startsWith('image/')?`<img src="data:${f.type};base64,${f.base64}" alt="">":"<div style='font-size:1.8rem;text-align:center;padding:8px'>📄</div>"}
+      <div class="fn">${f.name}</div>
+      <select onchange="S.uploadedFiles[${i}].label=this.value">
+        <option>Photo</option><option value="X-ray">🩻 X-ray/Scan</option>
+        <option value="Lab Report">🧪 Lab Report</option><option value="Prescription">💊 Prescription</option><option value="Other">📎 Other</option>
       </select>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
+function removeFile(i){S.uploadedFiles.splice(i,1);renderPreviews();}
 
-function removeFile(i) {
-  state.uploadedFiles.splice(i,1);
-  renderFilePreviews();
-}
-
-// ─── ANALYSIS ───
-async function runAnalysis() {
-  const loaderSubs = ['Parsing vitals and demographics…','Correlating symptoms with clinical patterns…','Running differential diagnosis engine…','Analysing uploaded documents…','Generating medication recommendations…'];
-  let subIdx = 0;
-  const loaderInterval = setInterval(() => {
-    subIdx = (subIdx+1)%loaderSubs.length;
-    document.getElementById('loaderSub').textContent = loaderSubs[subIdx];
-  }, 2200);
-
-  document.getElementById('loader').classList.add('active');
-
-  try {
-    const patientData = collectPatientData();
-    const messages = buildAPIMessages(patientData);
-    const response = await callAPI(messages);
-    clearInterval(loaderInterval);
-
-    state.diagnosisContext = JSON.stringify(patientData);
-    state.chatHistory = [
-      { role: 'user', content: buildUserPromptText(patientData) },
-      { role: 'assistant', content: response }
-    ];
-
-    renderResults(patientData, response);
-    goTo(4);
-  } catch(err) {
-    clearInterval(loaderInterval);
-    alert('API Error: ' + err.message + '\n\nPlease ensure you are running this via the Claude artifact environment.');
-    console.error(err);
-  } finally {
-    document.getElementById('loader').classList.remove('active');
-  }
-}
-
-function collectPatientData() {
+// ─── BUILD PATIENT DATA ───
+function collectData(){
   return {
-    name: document.getElementById('f_name').value || 'Patient',
-    age: document.getElementById('f_age').value || 'Not provided',
-    sex: selectedSex,
-    height: document.getElementById('f_height').value,
-    weight: document.getElementById('f_weight').value,
-    bmi: document.getElementById('bmiVal').textContent,
-    pulse: document.getElementById('f_pulse').value,
-    bp: document.getElementById('f_bp').value,
-    temperature: document.getElementById('f_temp').value,
-    rr: document.getElementById('f_rr').value,
-    spo2: document.getElementById('f_spo2').value,
-    sugar: document.getElementById('f_sugar').value,
-    conditions: document.getElementById('f_conditions').value,
-    medications: document.getElementById('f_meds').value,
-    family: document.getElementById('f_family').value,
-    regions: [...state.selectedRegions].map(r=>REGION_LABELS[r]).join(', ') || 'Not specified',
-    symptoms: [...state.selectedSymptoms].join(', ') || 'Not specified',
-    description: document.getElementById('f_desc').value,
-    severity: document.getElementById('f_severity').value,
-    duration: selectedDuration || 'Not specified',
-    filesCount: state.uploadedFiles.length
+    name:document.getElementById('f_name').value||'Patient',
+    age:document.getElementById('f_age').value||'Not provided',
+    sex:selectedSex,
+    height:document.getElementById('f_height').value,
+    weight:document.getElementById('f_weight').value,
+    bmi:document.getElementById('bmiVal').textContent,
+    pulse:document.getElementById('f_pulse').value,
+    bp:document.getElementById('f_bp').value,
+    temperature:document.getElementById('f_temp').value,
+    rr:document.getElementById('f_rr').value,
+    spo2:document.getElementById('f_spo2').value,
+    sugar:document.getElementById('f_sugar').value,
+    conditions:document.getElementById('f_conditions').value,
+    medications:document.getElementById('f_meds').value,
+    family:document.getElementById('f_family').value,
+    regions:[...S.selectedRegions].map(r=>RLABELS[r]).join(', ')||'Not specified',
+    symptoms:[...S.selectedSymptoms].join(', ')||'Not specified',
+    description:document.getElementById('f_desc').value,
+    severity:document.getElementById('f_severity').value,
+    duration:selectedDur||'Not specified',
+    sleep:{
+      hours:S.sleepData.sl_hours||'Not specified',
+      quality:S.sleepData.sl_quality||'Not specified',
+      bedtime:S.sleepData.sl_time||'Not specified',
+      wakeup:S.sleepData.sl_wakeup||'Not specified',
+      screen:S.sleepData.sl_screen||'Not specified',
+      caffeine:S.sleepData.sl_caffeine||'Not specified',
+      disturbances:[...(S.multiSel.sl_dist||[])].join(', ')||'None reported',
+      notes:document.getElementById('f_sleep_notes').value
+    },
+    diet:{
+      type:S.sleepData.diet_type||'Not specified',
+      meals:S.sleepData.diet_meals||'Not specified',
+      activity:S.sleepData.diet_activity||'Not specified',
+      goal:S.sleepData.diet_goal||'Not specified',
+      concerns:[...(S.multiSel.diet_conc||[])].join(', ')||'None reported',
+      notes:document.getElementById('f_diet_notes').value
+    },
+    filesCount:S.uploadedFiles.length
   };
 }
 
-function buildUserPromptText(d) {
+function buildPrompt(d){
   return `PATIENT ASSESSMENT REQUEST
 
 DEMOGRAPHICS:
@@ -1386,240 +994,240 @@ DEMOGRAPHICS:
 
 VITALS:
 - Pulse: ${d.pulse||'NP'} bpm | BP: ${d.bp||'NP'} | Temp: ${d.temperature||'NP'} °F
-- Respiratory Rate: ${d.rr||'NP'} /min | SpO2: ${d.spo2||'NP'}% | Blood Sugar: ${d.sugar||'NP'} mg/dL
+- Respiratory Rate: ${d.rr||'NP'} /min | SpO₂: ${d.spo2||'NP'}% | Blood Sugar: ${d.sugar||'NP'} mg/dL
 
 MEDICAL HISTORY:
-- Known conditions: ${d.conditions||'None reported'}
-- Current medications: ${d.medications||'None reported'}
-- Family history: ${d.family||'None reported'}
+- Known conditions: ${d.conditions||'None'}
+- Medications: ${d.medications||'None'}
+- Family history: ${d.family||'None'}
 
 PRESENTING COMPLAINT:
 - Affected region(s): ${d.regions}
-- Symptoms: ${d.symptoms}
-- Patient description: ${d.description||'None provided'}
-- Severity: ${d.severity}/10
-- Duration: ${d.duration}
-${d.filesCount>0 ? `\nUPLOADED DOCUMENTS: ${d.filesCount} file(s) provided for review.` : ''}
+- Selected symptoms: ${d.symptoms}
+- Patient description: ${d.description||'None'}
+- Severity: ${d.severity}/10 | Duration: ${d.duration}
 
-Please provide a comprehensive clinical assessment.`;
+SLEEP PROFILE:
+- Hours/night: ${d.sleep.hours} | Quality: ${d.sleep.quality}
+- Usual bedtime: ${d.sleep.bedtime} | Morning state: ${d.sleep.wakeup}
+- Screen before bed: ${d.sleep.screen} | Caffeine/Alcohol: ${d.sleep.caffeine}
+- Sleep disturbances: ${d.sleep.disturbances}
+- Additional sleep notes: ${d.sleep.notes||'None'}
+
+DIETARY PROFILE:
+- Diet type: ${d.diet.type} | Meals/day: ${d.diet.meals}
+- Activity level: ${d.diet.activity} | Weight goal: ${d.diet.goal}
+- Dietary concerns: ${d.diet.concerns}
+- Additional diet notes: ${d.diet.notes||'None'}
+${d.filesCount>0?`\nUPLOADED: ${d.filesCount} document(s) attached.`:''}
+
+Please provide a comprehensive clinical assessment including sleep disorder analysis and personalised diet recommendations.`;
 }
 
-function buildAPIMessages(d) {
-  const textContent = { type: 'text', text: buildUserPromptText(d) };
-  const content = [textContent];
-
-  state.uploadedFiles.forEach(f => {
-    if(f.type.startsWith('image/')) {
-      content.push({ type: 'text', text: `\n[UPLOADED ${f.label.toUpperCase()}: ${f.name}]` });
-      content.push({ type: 'image', source: { type: 'base64', media_type: f.type, data: f.base64 } });
-    } else if(f.text) {
-      content.push({ type: 'text', text: `\n[UPLOADED ${f.label.toUpperCase()}: ${f.name}]\n${f.text}` });
-    }
-  });
-
-  return [{ role: 'user', content }];
+// ─── API CALL ───
+async function runAnalysis(){
+  const subs=['Parsing vitals & demographics…','Correlating symptom patterns…','Running differential diagnosis…','Analysing sleep profile…','Generating diet plan…','Reviewing uploaded documents…'];
+  let si=0; const iv=setInterval(()=>{ si=(si+1)%subs.length; document.getElementById('loaderSub').textContent=subs[si]; },2000);
+  document.getElementById('loader').classList.add('active');
+  try{
+    const d=collectData();
+    const content=[{type:'text',text:buildPrompt(d)}];
+    S.uploadedFiles.forEach(f=>{
+      if(f.type.startsWith('image/')){
+        content.push({type:'text',text:`\n[UPLOADED ${f.label.toUpperCase()}: ${f.name}]`});
+        content.push({type:'image',source:{type:'base64',media_type:f.type,data:f.base64}});
+      } else if(f.text){
+        content.push({type:'text',text:`\n[UPLOADED ${f.label.toUpperCase()}: ${f.name}]\n${f.text}`});
+      }
+    });
+    const resp=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:2500,
+      system:SYSTEM_PROMPT,
+      messages:[{role:'user',content}]
+    })});
+    if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${resp.status}`);}
+    const data=await resp.json();
+    const reply=data.content.map(c=>c.text||'').join('');
+    clearInterval(iv);
+    S.chatHistory=[{role:'user',content:buildPrompt(d)},{role:'assistant',content:reply}];
+    renderResults(d,reply);
+    goTo(5);
+  }catch(err){ clearInterval(iv); alert('Error: '+err.message); console.error(err); }
+  finally{ document.getElementById('loader').classList.remove('active'); }
 }
 
-async function callAPI(messages) {
-  const systemPrompt = `You are MediScan AI, an expert clinical decision-support system with the combined knowledge of a senior physician across General Medicine, Internal Medicine, Cardiology, Pulmonology, Gastroenterology, Neurology, and all major specialties.
+const SYSTEM_PROMPT=`You are MediScan AI, a clinical decision-support system with the knowledge of a senior physician across General Medicine, Internal Medicine, Cardiology, Pulmonology, Gastroenterology, Neurology, Sleep Medicine, and Nutrition.
 
-Your response must follow this EXACT structured format with these section headers:
+Respond using EXACTLY these section headers:
 
 ## 🚨 EMERGENCY ALERT
-[ONLY include this section if symptoms suggest a life-threatening emergency requiring immediate ER attendance. Otherwise omit entirely.]
+[Include ONLY if life-threatening emergency suspected. Otherwise omit.]
 
 ## 📊 CLINICAL SUMMARY
-[2-3 sentences summarising the clinical picture based on vitals, history, and symptoms]
+[2–3 sentence synthesis of the full clinical picture: vitals, history, symptoms, sleep, diet.]
 
 ## 🔬 DIFFERENTIAL DIAGNOSIS
-[List the top 3-5 most likely diagnoses, ordered by probability. For each provide:
-- **Diagnosis name** (Likelihood: High/Medium/Low)
-- Clinical reasoning: Why this fits the presentation
-- Key supporting features from the history/vitals]
+[Top 3–5 diagnoses ordered by likelihood.
+For each: **Diagnosis** (Likelihood: High/Medium/Low) — Clinical reasoning — Supporting features from the presentation.]
 
 ## 🧪 RECOMMENDED INVESTIGATIONS
-[List investigations in order of priority: blood tests, imaging, specialist referrals. Be specific — include test names, rationale.]
+[Prioritised list: blood tests with rationale, imaging, specialist referrals. Be specific.]
 
-## 💊 SUGGESTED TREATMENT & MEDICATION
-[For each medication: Generic Name | Dose | Frequency | Duration | Key precautions
-Note: These are general guidelines only. Doses must be confirmed by a prescribing physician.]
+## 💊 SUGGESTED TREATMENT & MEDICATIONS
+[Table format: Generic Drug Name | Standard Dose | Frequency | Duration | Key Precautions
+For symptomatic relief only. Prescribing physician must confirm.]
 
-## 🥗 LIFESTYLE & SUPPORTIVE MEASURES
-[Practical, specific advice on diet, activity, rest, monitoring]
+## 😴 SLEEP ASSESSMENT & RECOMMENDATIONS
+[Based on the sleep profile provided:
+- Identify any probable sleep disorder (e.g. insomnia, sleep apnoea, circadian rhythm disorder, restless legs)
+- Explain how sleep quality is affecting their health
+- Provide specific, actionable sleep hygiene recommendations
+- Note if specialist referral (sleep clinic, polysomnography) is warranted]
+
+## 🥗 PERSONALISED DIET PLAN
+[Based on their diet profile, weight, BMI, conditions, and goals:
+- Summarise the key nutritional concerns
+- Provide a practical, culturally sensitive meal framework (breakfast, lunch, dinner, snacks)
+- List foods to increase, reduce, and avoid
+- Provide specific guidance for their health condition (e.g. diabetic diet, cardiac diet, anti-inflammatory)
+- Recommended daily water intake, supplement considerations]
+
+## 🏃 LIFESTYLE & GENERAL ADVICE
+[Exercise recommendations (type, duration, frequency appropriate to their activity level and condition), stress management, monitoring at home.]
 
 ## ⚠️ RED FLAGS — SEEK IMMEDIATE CARE IF:
-[List specific warning symptoms that should prompt emergency attendance]
+[5–7 specific warning symptoms requiring emergency care given this presentation.]
 
-If images or documents were uploaded, analyse them in the relevant sections. Be clinically precise. Use medical terminology where appropriate but explain it briefly for patient understanding. Do not be excessively hedging — give your best clinical assessment.`;
-
-  const resp = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
-      system: systemPrompt,
-      messages
-    })
-  });
-
-  if(!resp.ok) {
-    const err = await resp.json().catch(()=>({}));
-    throw new Error(err.error?.message || `HTTP ${resp.status}`);
-  }
-
-  const data = await resp.json();
-  return data.content.map(c=>c.text||'').join('');
-}
+If images/documents were uploaded, analyse them in the relevant sections. Be clinically precise yet understandable. Do not be excessively hedging.`;
 
 // ─── RENDER RESULTS ───
-function renderResults(d, responseText) {
-  document.getElementById('reportTimestamp').textContent =
-    'Generated ' + new Date().toLocaleString('en-IN', {dateStyle:'long', timeStyle:'short'});
-
-  // Patient summary card
-  const items = [
-    ['Patient', d.name!='Patient'?d.name:'—'],
-    ['Age / Sex', `${d.age} / ${d.sex}`],
-    ['BMI', d.bmi],
-    ['BP', d.bp||'—'],
-    ['Pulse', d.pulse?d.pulse+' bpm':'—'],
-    ['SpO₂', d.spo2?d.spo2+'%':'—'],
-    ['Temp', d.temperature?d.temperature+'°F':'—'],
-    ['Severity', d.severity+'/10'],
-    ['Duration', d.duration||'—']
-  ];
-  document.getElementById('patientSummary').innerHTML = items.map(([l,v])=>`
-    <div class="ps-item"><span class="ps-label">${l}</span><span class="ps-val">${v}</span></div>
-  `).join('');
-
-  // Check for emergency
-  const hasEmergency = responseText.includes('🚨 EMERGENCY ALERT') && !responseText.includes('🚨 EMERGENCY ALERT\n[ONLY');
-  if(hasEmergency) {
-    const em = document.getElementById('emergencyBanner');
-    em.style.display = 'flex';
-    em.innerHTML = `
-      <div class="emergency-banner">
-        <span class="em-icon">🚨</span>
-        <div>
-          <h3>EMERGENCY — Seek Immediate Medical Attention</h3>
-          <p>The AI has identified features in your presentation that may require urgent or emergency medical care. Please call emergency services or proceed to the nearest Emergency Room immediately.</p>
-        </div>
-      </div>`;
+function renderResults(d,text){
+  document.getElementById('reportTimestamp').textContent='Generated '+new Date().toLocaleString('en-IN',{dateStyle:'long',timeStyle:'short'});
+  const items=[['Patient',d.name!='Patient'?d.name:'—'],['Age/Sex',d.age+' / '+d.sex],['BMI',d.bmi],['BP',d.bp||'—'],['Pulse',d.pulse?d.pulse+' bpm':'—'],['SpO₂',d.spo2?d.spo2+'%':'—'],['Temp',d.temperature?d.temperature+'°F':'—'],['Sleep',d.sleep.quality],['Severity',d.severity+'/10']];
+  document.getElementById('patientSummary').innerHTML=items.map(([l,v])=>`<div class="ps-item"><span class="ps-label">${l}</span><span class="ps-val">${v}</span></div>`).join('');
+  if(text.includes('🚨 EMERGENCY ALERT')&&!text.includes('[Include ONLY')){
+    const em=document.getElementById('emergencyBanner');
+    em.innerHTML=`<div class="emergency-banner"><span class="em-icon">🚨</span><div><h3>EMERGENCY — Seek Immediate Care</h3><p>MediScan AI has identified features that may require urgent medical attention. Call emergency services or go to the nearest Emergency Room immediately.</p></div></div>`;
   }
-
-  // Render main response
-  const formatted = formatResponseHTML(responseText);
-  document.getElementById('resultsBody').innerHTML = formatted;
+  document.getElementById('resultsBody').innerHTML=formatHTML(text);
+  window._lastReport={data:d,text,ts:new Date().toISOString()};
 }
 
-function formatResponseHTML(text) {
-  const sections = text.split(/\n## /);
-  return sections.map((section,i) => {
-    if(i===0 && !section.startsWith('#')) {
-      return section ? `<div class="result-prose">${escHtml(section)}</div>` : '';
-    }
-    const lines = section.split('\n');
-    const title = lines[0].replace(/^#+\s*/,'');
-    const body = lines.slice(1).join('\n').trim();
+function formatHTML(text){
+  return text.split(/\n## /).map((sec,i)=>{
+    if(i===0&&!sec.startsWith('#')) return sec?`<div class="result-prose">${esc(sec)}</div>`:'';
+    const lines=sec.split('\n'); const title=lines[0].replace(/^#+\s*/,''); const body=lines.slice(1).join('\n').trim();
     if(title.includes('EMERGENCY ALERT')) return '';
-    return `
-      <div class="result-section">
-        <h3><span class="dot"></span>${title}</h3>
-        <div class="result-prose">${renderMarkdown(body)}</div>
-      </div>`;
+    return `<div class="result-section"><h3><span class="dot"></span>${title}</h3><div class="result-prose">${mdToHTML(body)}</div></div>`;
   }).join('');
 }
 
-function renderMarkdown(text) {
-  return escHtml(text)
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/gs, '<ul style="padding-left:20px;margin:8px 0">$&</ul>')
-    .replace(/\n{2,}/g, '</p><p style="margin-top:8px">')
-    .replace(/^(.)/,'<p>$1').replace(/(.)$/,'$1</p>');
+function mdToHTML(t){
+  return esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/^- (.+)$/gm,'<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/gs,'<ul style="padding-left:18px;margin:7px 0">$&</ul>').replace(/\n{2,}/g,'</p><p style="margin-top:7px">').replace(/^(.)/,'<p>$1').replace(/(.)$/,'$1</p>');
 }
-
-function escHtml(t) {
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // ─── CHAT ───
-async function sendChat() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if(!msg) return;
-  input.value = '';
+async function sendChat(){
+  const inp=document.getElementById('chatInput'); const msg=inp.value.trim(); if(!msg)return; inp.value='';
+  appendMsg(msg,'user'); S.chatHistory.push({role:'user',content:msg});
+  const typing=appendMsg('…','ai');
+  try{
+    const resp=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:800,
+      system:'You are MediScan AI continuing a clinical consultation. Answer follow-up questions based on prior assessment. Be clear and remind the patient to consult a physician for treatment decisions.',
+      messages:S.chatHistory
+    })});
+    const data=await resp.json();
+    const reply=data.content.map(c=>c.text||'').join('');
+    typing.textContent=reply; S.chatHistory.push({role:'assistant',content:reply});
+  }catch(e){typing.textContent='Error: '+e.message;}
+}
 
-  appendChatMsg(msg, 'user');
-  state.chatHistory.push({ role: 'user', content: msg });
+function appendMsg(text,role){
+  const wrap=document.getElementById('chatMessages');
+  const div=document.createElement('div'); div.className='chat-msg '+role; div.textContent=text;
+  wrap.appendChild(div); wrap.scrollTop=wrap.scrollHeight; return div;
+}
 
-  const typingEl = appendChatMsg('…', 'ai');
+// ─── RECORDS (localStorage) ───
+function saveRecord(){
+  if(!window._lastReport){alert('No report to save.');return;}
+  const records=JSON.parse(localStorage.getItem('mediscan_records')||'[]');
+  const id='rec_'+Date.now();
+  records.unshift({id,ts:window._lastReport.ts,name:window._lastReport.data.name,age:window._lastReport.data.age,sex:window._lastReport.data.sex,regions:window._lastReport.data.regions,symptoms:window._lastReport.data.symptoms.substring(0,120),bmi:window._lastReport.data.bmi,report:window._lastReport.text,data:window._lastReport.data});
+  if(records.length>30) records.length=30; // keep last 30
+  localStorage.setItem('mediscan_records',JSON.stringify(records));
+  alert('✅ Record saved successfully!');
+}
 
-  try {
-    const resp = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: 'You are MediScan AI, continuing a clinical consultation. Answer the follow-up question based on the prior assessment context. Be clear, helpful, and appropriately cautious. Remind the patient to consult a physician for any treatment decisions.',
-        messages: state.chatHistory
-      })
-    });
-    const data = await resp.json();
-    const reply = data.content.map(c=>c.text||'').join('');
-    typingEl.textContent = reply;
-    state.chatHistory.push({ role: 'assistant', content: reply });
-  } catch(err) {
-    typingEl.textContent = 'Error: ' + err.message;
+function openRecords(){
+  const records=JSON.parse(localStorage.getItem('mediscan_records')||'[]');
+  const list=document.getElementById('recordsList');
+  if(records.length===0){list.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:20px">No saved records yet.<br>Complete an assessment and click "Save Record".</p>';}
+  else{
+    list.innerHTML=records.map((r,i)=>`
+      <div class="record-card">
+        <div class="rc-date">${new Date(r.ts).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}</div>
+        <div class="rc-patient">${r.name!='Patient'?r.name:'Anonymous'} · ${r.age} yrs · ${r.sex} · BMI ${r.bmi}</div>
+        <div class="rc-summary">Regions: ${r.regions||'—'}</div>
+        <div class="rc-summary" style="margin-top:3px">Symptoms: ${r.symptoms||'—'}${r.symptoms&&r.symptoms.length>=120?'…':''}</div>
+        <div class="record-actions">
+          <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.78rem" onclick="loadRecord(${i})">📋 View Report</button>
+          <button class="btn btn-danger" style="padding:6px 14px;font-size:0.78rem" onclick="deleteRecord('${r.id}')">🗑 Delete</button>
+        </div>
+      </div>`).join('');
   }
+  document.getElementById('recordsModal').classList.add('active');
 }
 
-function appendChatMsg(text, role) {
-  const wrap = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'chat-msg ' + role;
-  div.textContent = text;
-  wrap.appendChild(div);
-  wrap.scrollTop = wrap.scrollHeight;
-  return div;
+function loadRecord(i){
+  const records=JSON.parse(localStorage.getItem('mediscan_records')||'[]');
+  const r=records[i];
+  closeRecords();
+  document.getElementById('progressBar').style.display='flex';
+  document.getElementById('modWelcome').classList.remove('active');
+  renderResults(r.data,r.report);
+  window._lastReport={data:r.data,text:r.report,ts:r.ts};
+  S.chatHistory=[{role:'user',content:buildPrompt(r.data)},{role:'assistant',content:r.report}];
+  document.getElementById('chatMessages').innerHTML='';
+  goTo(5);
 }
+
+function deleteRecord(id){
+  if(!confirm('Delete this record?'))return;
+  let records=JSON.parse(localStorage.getItem('mediscan_records')||'[]');
+  records=records.filter(r=>r.id!==id);
+  localStorage.setItem('mediscan_records',JSON.stringify(records));
+  openRecords();
+}
+
+function closeRecords(){ document.getElementById('recordsModal').classList.remove('active'); }
+document.getElementById('recordsModal').addEventListener('click',function(e){if(e.target===this)closeRecords();});
 
 // ─── DOWNLOAD ───
-function downloadReport() {
-  const content = document.getElementById('resultsCard').innerText;
-  const blob = new Blob([content], {type:'text/plain'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'MediScan_Report_' + new Date().toISOString().slice(0,10) + '.txt';
-  a.click();
+function downloadReport(){
+  if(!window._lastReport){alert('No report available.');return;}
+  const blob=new Blob([window._lastReport.text],{type:'text/plain'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='MediScan_Report_'+new Date().toISOString().slice(0,10)+'.txt'; a.click();
 }
 
 // ─── RESET ───
-function resetApp() {
-  if(!confirm('Start a new assessment? This will clear all current data.')) return;
-  state.selectedRegions.clear();
-  state.selectedSymptoms.clear();
-  state.uploadedFiles = [];
-  state.chatHistory = [];
-  state.duration = '';
-  selectedDuration = '';
-  selectedSex = 'Male';
-  document.querySelectorAll('input[type=text], input[type=number], textarea').forEach(el=>el.value='');
-  document.getElementById('bmiVal').textContent='—';
-  document.getElementById('bmiCat').textContent='Enter height & weight';
-  setSex('Male');
-  document.getElementById('emergencyBanner').style.display='none';
-  document.getElementById('chatMessages').innerHTML='';
-  document.getElementById('filePreviews').innerHTML='';
+function resetApp(){
+  if(!confirm('Start a new assessment? All current data will be cleared.'))return;
+  S.selectedRegions.clear(); S.selectedSymptoms.clear(); S.uploadedFiles=[]; S.chatHistory=[];
+  S.sleepData={}; S.multiSel={}; selectedDur=''; selectedSex='Male';
+  document.querySelectorAll('input[type=text],input[type=number],textarea').forEach(el=>el.value='');
+  document.querySelectorAll('.opt-chip,.diet-chip').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.dur-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('bmiVal').textContent='—'; document.getElementById('bmiCat').textContent='Enter H & W';
+  document.getElementById('emergencyBanner').innerHTML='';
+  document.getElementById('chatMessages').innerHTML=''; document.getElementById('filePreviews').innerHTML='';
+  setSex('Male'); window._lastReport=null;
   document.getElementById('progressBar').style.display='none';
+  document.querySelectorAll('.module').forEach(m=>m.classList.remove('active'));
   document.getElementById('modWelcome').classList.add('active');
-  goTo(1);
-  document.getElementById('modWelcome').classList.add('active');
-  document.getElementById('mod1').classList.remove('active');
-  document.getElementById('progressBar').style.display='none';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 </script>
